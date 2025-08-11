@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using D2G.Iris.ML.Core.Models;
-using Microsoft.ML.Trainers;
 
-namespace D2G.Iris.ML.ConfigUI.Services
+namespace D2G.Iris.ML.ConfigUI.WPF.Services
 {
-    public class DatabaseSchemaLoader
+    public class DatabaseSchemaLoader : IDatabaseSchemaLoader
     {
         public List<string> LoadTableColumns(DatabaseConfig config)
         {
@@ -48,7 +47,7 @@ namespace D2G.Iris.ML.ConfigUI.Services
                 {
                     columns.Add(reader.GetString("COLUMN_NAME"));
                 }
-                
+
                 if (columns.Count == 0)
                 {
                     throw new InvalidOperationException($"Table '{config.TableName}' not found or has no columns.");
@@ -80,7 +79,7 @@ namespace D2G.Iris.ML.ConfigUI.Services
                 return false;
             }
         }
-
+        
         private string BuildConnectionString(DatabaseConfig config)
         {
             var builder = new SqlConnectionStringBuilder

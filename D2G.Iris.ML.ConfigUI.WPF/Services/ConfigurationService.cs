@@ -4,9 +4,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using D2G.Iris.ML.Core.Models;
 
-namespace D2G.Iris.ML.ConfigUI.Services
+namespace D2G.Iris.ML.ConfigUI.WPF.Services
 {
-    public class ConfigurationService
+    public class ConfigurationService : IConfigurationService
     {
         private readonly JsonSerializerOptions _serializerOptions;
 
