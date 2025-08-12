@@ -1,0 +1,53 @@
+﻿<UserControl x:Class="D2G.Iris.ML.ConfigUI.WPF.Views.GeneralSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="600">
+
+    <GroupBox Header="General Settings" Margin="10">
+        <Grid Margin="15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="15"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="15"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="15"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Author -->
+            <Label Grid.Row="0" Grid.Column="0" Content="Author:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="0" Grid.Column="1" 
+                     Text="{Binding Author, UpdateSourceTrigger=PropertyChanged}" 
+                     VerticalAlignment="Center" Height="25"/>
+
+            <!-- Description -->
+            <Label Grid.Row="2" Grid.Column="0" Content="Description:" VerticalAlignment="Top" Margin="0,5,0,0"/>
+            <TextBox Grid.Row="2" Grid.Column="1" 
+                     Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
+                     AcceptsReturn="True" TextWrapping="Wrap" 
+                     VerticalScrollBarVisibility="Auto" Height="80"/>
+
+            <!-- Model Type -->
+            <Label Grid.Row="4" Grid.Column="0" Content="Model Type:" VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="4" Grid.Column="1" 
+                      ItemsSource="{Binding AvailableModelTypes}"
+                      SelectedItem="{Binding ModelType}"
+                      VerticalAlignment="Center" Height="25"/>
+
+            <!-- Target Field -->
+            <Label Grid.Row="6" Grid.Column="0" Content="Target Field:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="6" Grid.Column="1" 
+                     Text="{Binding TargetField, UpdateSourceTrigger=PropertyChanged}" 
+                     VerticalAlignment="Center" Height="25"/>
+        </Grid>
+    </GroupBox>
+</UserControl>

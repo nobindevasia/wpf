@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Media;
 
 namespace D2G.Iris.ML.ConfigUI.WPF.Converters
 {
@@ -93,6 +94,56 @@ namespace D2G.Iris.ML.ConfigUI.WPF.Converters
                 return result;
             }
             return 0m;
+        }
+    }
+
+    public class BooleanToBrushConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool boolValue && parameter is string colorPair)
+            {
+                var colors = colorPair.Split('|');
+                if (colors.Length == 2)
+                {
+                    var colorName = boolValue ? colors[0] : colors[1];
+                    try
+                    {
+                        return new SolidColorBrush((Color)ColorConverter.ConvertFromString(colorName));
+                    }
+                    catch
+                    {
+                        return new SolidColorBrush(Colors.Gray);
+                    }
+                }
+            }
+            return new SolidColorBrush(Colors.Gray);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class BooleanToStringConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool boolValue && parameter is string textPair)
+            {
+                var texts = textPair.Split('|');
+                if (texts.Length == 2)
+                {
+                    return boolValue ? texts[0] : texts[1];
+                }
+            }
+            return value?.ToString() ?? string.Empty;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 }

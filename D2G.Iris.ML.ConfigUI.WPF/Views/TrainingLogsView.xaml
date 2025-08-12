@@ -1,0 +1,59 @@
+﻿<UserControl x:Class="D2G.Iris.ML.ConfigUI.WPF.Views.TrainingLogsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="600">
+
+    <GroupBox Header="Training Logs" Margin="10">
+        <Grid Margin="15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Log Display -->
+            <RichTextBox Grid.Row="0" 
+                         x:Name="LogTextBox"
+                         IsReadOnly="True"
+                         Background="White"
+                         Foreground="DarkGreen"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         VerticalScrollBarVisibility="Auto"
+                         HorizontalScrollBarVisibility="Auto">
+                <FlowDocument>
+                    <Paragraph>
+                        <Run Text="{Binding LogText, Mode=OneWay}"/>
+                    </Paragraph>
+                </FlowDocument>
+            </RichTextBox>
+
+            <!-- Alternative: Use TextBox for simpler binding -->
+            <!--<TextBox Grid.Row="0" 
+                     Text="{Binding LogText, Mode=OneWay}"
+                     IsReadOnly="True"
+                     Background="White"
+                     Foreground="DarkGreen"
+                     FontFamily="Consolas"
+                     FontSize="10"
+                     TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"/>-->
+
+            <!-- Button Panel -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+
+                <Button Content="Clear Logs" 
+                        Command="{Binding ClearLogsCommand}"
+                        Width="80" Height="30" Margin="0,0,10,0"/>
+
+                <Button Content="Save Logs" 
+                        Command="{Binding SaveLogsCommand}"
+                        Width="80" Height="30"/>
+            </StackPanel>
+        </Grid>
+    </GroupBox>
+</UserControl>

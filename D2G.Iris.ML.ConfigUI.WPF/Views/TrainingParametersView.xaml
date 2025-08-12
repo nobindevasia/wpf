@@ -1,0 +1,74 @@
+﻿<UserControl x:Class="D2G.Iris.ML.ConfigUI.WPF.Views.TrainingParametersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:D2G.Iris.ML.ConfigUI.WPF.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="600">
+
+    <UserControl.Resources>
+        <converters:StringToDecimalConverter x:Key="StringToDecimalConverter"/>
+    </UserControl.Resources>
+
+    <GroupBox Header="Training Parameters" Margin="10">
+        <Grid Margin="15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="15"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="15"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="15"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Algorithm -->
+            <Label Grid.Row="0" Grid.Column="0" Content="Algorithm:" VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="0" Grid.Column="1" 
+                      ItemsSource="{Binding AvailableAlgorithms}"
+                      SelectedItem="{Binding SelectedAlgorithm}"
+                      VerticalAlignment="Center" Height="25"/>
+
+            <!-- Test Fraction -->
+            <Label Grid.Row="2" Grid.Column="0" Content="Test Fraction:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="2" Grid.Column="1" 
+                     Text="{Binding TestFraction, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource StringToDecimalConverter}}" 
+                     VerticalAlignment="Center" Height="25" Width="120" HorizontalAlignment="Left"/>
+
+            <!-- Algorithm Parameters Label -->
+            <Label Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Content="Algorithm Parameters:" FontWeight="Bold"/>
+
+            <!-- Parameters ListView -->
+            <ListView Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"
+                      ItemsSource="{Binding Parameters}"
+                      SelectedItem="{Binding SelectedParameter}"
+                      SelectionMode="Single">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Parameter Name" Width="200" DisplayMemberBinding="{Binding Name}"/>
+                        <GridViewColumn Header="Value" Width="200" DisplayMemberBinding="{Binding ValueString}"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+
+            <!-- Button Panel -->
+            <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" 
+                        Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+
+                <Button Content="Add Parameter" 
+                        Command="{Binding AddParameterCommand}"
+                        Width="120" Height="30" Margin="0,0,10,0"/>
+
+                <Button Content="Remove" 
+                        Command="{Binding RemoveParameterCommand}"
+                        Width="70" Height="30"/>
+            </StackPanel>
+        </Grid>
+    </GroupBox>
+</UserControl>

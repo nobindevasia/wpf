@@ -3,10 +3,122 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:D2G.Iris.ML.ConfigUI.WPF"
+        xmlns:views="clr-namespace:D2G.Iris.ML.ConfigUI.WPF.Views"
+        xmlns:converters="clr-namespace:D2G.Iris.ML.ConfigUI.WPF.Converters"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="{Binding WindowTitle}"
+        Height="600" Width="900"
+        MinHeight="500" MinWidth="700"
+        WindowStartupLocation="CenterScreen">
 
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Menu Bar -->
+        <Menu Grid.Row="0" IsEnabled="{Binding IsTraining, Converter={StaticResource InverseBooleanConverter}}">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New" Command="{Binding NewConfigCommand}" InputGestureText="Ctrl+N"/>
+                <MenuItem Header="_Open..." Command="{Binding OpenConfigCommand}" InputGestureText="Ctrl+O"/>
+                <Separator/>
+                <MenuItem Header="_Save" Command="{Binding SaveConfigCommand}" InputGestureText="Ctrl+S"/>
+                <Separator/>
+                <MenuItem Header="E_xit" Command="{Binding ExitCommand}"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- Main Content -->
+        <TabControl Grid.Row="1" 
+                    SelectedIndex="{Binding SelectedTabIndex}"
+                    IsEnabled="{Binding IsTraining, Converter={StaticResource InverseBooleanConverter}}">
+
+            <!-- General Settings Tab -->
+            <TabItem Header="General Settings">
+                <views:GeneralSettingsView DataContext="{Binding GeneralSettings}"/>
+            </TabItem>
+
+            <!-- Database Tab -->
+            <TabItem Header="Database">
+                <views:DatabaseSettingsView DataContext="{Binding DatabaseSettings}"/>
+            </TabItem>
+
+            <!-- Input Fields Tab -->
+            <TabItem Header="Input Fields">
+                <views:InputFieldsView DataContext="{Binding InputFields}"/>
+            </TabItem>
+
+            <!-- Training Parameters Tab -->
+            <TabItem Header="Training Parameters">
+                <views:TrainingParametersView DataContext="{Binding TrainingParameters}"/>
+            </TabItem>
+
+            <!-- Data Balancing Tab -->
+            <TabItem Header="Data Balancing">
+                <views:DataBalancingView DataContext="{Binding DataBalancing}"/>
+            </TabItem>
+
+            <!-- Feature Engineering Tab -->
+            <TabItem Header="Feature Engineering">
+                <views:FeatureEngineeringView DataContext="{Binding FeatureEngineering}"/>
+            </TabItem>
+
+            <!-- AutoML Tab -->
+            <TabItem Header="AutoML">
+                <views:AutoMLSettingsView DataContext="{Binding AutoMLSettings}"/>
+            </TabItem>
+
+            <!-- Training Logs Tab -->
+            <TabItem Header="Training Logs">
+                <views:TrainingLogsView DataContext="{Binding TrainingLogs}"/>
+            </TabItem>
+        </TabControl>
+
+        <!-- Training Button -->
+        <Button Grid.Row="2" 
+                Command="{Binding LaunchTrainingCommand}"
+                FontWeight="Bold"
+                FontSize="12"
+                Height="40"
+                Margin="10"
+                Cursor="Hand">
+            <Button.Style>
+                <Style TargetType="Button">
+                    <Setter Property="Content" Value="Launch Training"/>
+                    <Setter Property="Background" Value="Green"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsTraining}" Value="True">
+                            <Setter Property="Content" Value="Training..."/>
+                            <Setter Property="Background" Value="Orange"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
+
+        <!-- Status Bar -->
+        <StatusBar Grid.Row="3">
+            <StatusBarItem>
+                <StatusBarItem.Style>
+                    <Style TargetType="StatusBarItem">
+                        <Setter Property="Content" Value="Ready"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsTraining}" Value="True">
+                                <Setter Property="Content" Value="Training in progress..."/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StatusBarItem.Style>
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>
