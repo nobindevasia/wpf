@@ -7,6 +7,7 @@ using System.Windows.Input;
 using D2G.Iris.ML.ConfigUI.WPF.Commands;
 using D2G.Iris.ML.ConfigUI.WPF.Models;
 using D2G.Iris.ML.ConfigUI.WPF.Services;
+using D2G.Iris.ML.ConfigUI.WPF.Dialogs;
 using D2G.Iris.ML.Core.Models;
 
 namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
@@ -78,8 +79,13 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 IsEnabled = true
             };
 
-            var dialog = _dialogService.ShowDialog<InputFieldDialog>(dialogViewModel);
-            if (dialog?.DialogResult == true)
+            var dialog = new InputFieldDialog
+            {
+                DataContext = dialogViewModel,
+                Owner = System.Windows.Application.Current.MainWindow
+            };
+
+            if (dialog.ShowDialog() == true)
             {
                 var existingField = InputFields.FirstOrDefault(f =>
                     string.Equals(f.Name, dialogViewModel.FieldName, StringComparison.OrdinalIgnoreCase));
@@ -109,13 +115,18 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 IsEnabled = SelectedField.IsEnabled
             };
 
-            var dialog = _dialogService.ShowDialog<InputFieldDialog>(dialogViewModel);
-            if (dialog?.DialogResult == true)
+            var dialog = new InputFieldDialog
+            {
+                DataContext = dialogViewModel,
+                Owner = System.Windows.Application.Current.MainWindow
+            };
+
+            if (dialog.ShowDialog() == true)
             {
                 var existingField = InputFields.FirstOrDefault(f =>
                     f != SelectedField &&
                     string.Equals(f.Name, dialogViewModel.FieldName, StringComparison.OrdinalIgnoreCase));
-                                                                                                                                                                                    
+
                 if (existingField != null)
                 {
                     _dialogService.ShowErrorDialog($"A field with the name '{dialogViewModel.FieldName}' already exists.", "Duplicate Field");

@@ -7,7 +7,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 using D2G.Iris.ML.Core.Enums;
 
-namespace D2G.Iris.ML.ConfigUI.WPF.Utilities
+namespace D2G.Iris.ML.Utils
 {
     public static class AlgorithmRegistry
     {
@@ -215,6 +215,23 @@ namespace D2G.Iris.ML.ConfigUI.WPF.Utilities
                    underlyingType == typeof(TimeSpan);
         }
 
+        public static string GetFriendlyTypeName(Type type)
+        {
+            var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
+
+            string baseName = underlyingType.Name switch
+            {
+                "Int32" => "int",
+                "Double" => "double",
+                "Single" => "float",
+                "Boolean" => "bool",
+                "String" => "string",
+                _ => underlyingType.IsEnum ? "enum" : underlyingType.Name
+            };
+
+            return baseName;
+        }
+
         public static List<PropertyInfo> GetConfigurableProperties(Type optionsType)
         {
             if (optionsType == null)
@@ -237,6 +254,184 @@ namespace D2G.Iris.ML.ConfigUI.WPF.Utilities
                 .Where(f => IsConfigurableParameter(f.Name, f.FieldType))
                 .OrderBy(f => f.Name)
                 .ToList();
+        }
+
+        public static object ConvertParameterValue(string value, Type targetType)
+        {
+            var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+            if (underlyingType == typeof(int))
+                return int.Parse(value);
+            else if (underlyingType == typeof(double))
+                return double.Parse(value);
+            else if (underlyingType == typeof(float))
+                return float.Parse(value.Replace("f", ""));
+            else if (underlyingType == typeof(bool))
+                return bool.Parse(value);
+            else if (underlyingType.IsEnum)
+                return Enum.Parse(underlyingType, value, true);
+            else
+                return value;
+        }
+
+        public static string GetDefaultValue(Type type)
+        {
+            var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
+
+            if (underlyingType == typeof(int))
+                return "0";
+            else if (underlyingType == typeof(double))
+                return "0.0";
+            else if (underlyingType == typeof(float))
+                return "0.0f";
+            else if (underlyingType == typeof(bool))
+                return "true";
+            else if (underlyingType.IsEnum)
+            {
+                var enumValues = Enum.GetNames(underlyingType);
+                return enumValues.Length > 0 ? enumValues[0] : "";
+            }
+            else
+                return "";
+        }
+
+        public static string GetValueHint(Type type)
+        {
+            var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
+
+            if (underlyingType.IsEnum)
+            {
+                var enumValues = Enum.GetNames(underlyingType);
+                return $"Valid values: {string.Join(", ", enumValues)}";
+            }
+            else if (underlyingType == typeof(bool))
+            {
+                return "Valid values: true, false";
+            }
+            else if (underlyingType == typeof(int))
+            {
+                return "Enter an integer value";
+            }
+            else if (underlyingType == typeof(double) || underlyingType == typeof(float))
+            {
+                return "Enter a decimal value";
+            }
+            else
+            {
+                return "Enter a value";
+            }
+        }
+
+        public static string CreateParameterDisplayText(string name, Type type)
+        {
+            return $"{name} ({GetFriendlyTypeName(type)})";
+        }
+
+        public static List<string> GetParameterDisplayList(Type optionsType)
+        {
+            var result = new List<string>();
+
+            var properties = GetConfigurableProperties(optionsType);
+            var fields = GetConfigurableFields(optionsType);
+
+            result.AddRange(properties.Select(p => CreateParameterDisplayText(p.Name, p.PropertyType)));
+            result.AddRange(fields.Select(f => CreateParameterDisplayText(f.Name, f.FieldType)));
+
+            return result.OrderBy(x => x).ToList();
+        }
+
+        public static string CreateParameterTooltip(Type optionsType)
+        {
+            var displayList = GetParameterDisplayList(optionsType);
+
+            if (!displayList.Any())
+                return "No configurable parameters available for this algorithm.";
+
+            return "Available Parameters:\n" + string.Join("\n", displayList);
+        }
+
+        public static List<AlgorithmParameterInfo> GetAllParameterInfo(Type optionsType)
+        {
+            var result = new List<AlgorithmParameterInfo>();
+
+            if (optionsType == null)
+                return result;
+
+            var properties = GetConfigurableProperties(optionsType);
+            var fields = GetConfigurableFields(optionsType);
+
+            result.AddRange(properties.Select(p => new AlgorithmParameterInfo(p)));
+            result.AddRange(fields.Select(f => new AlgorithmParameterInfo(f)));
+
+            return result.OrderBy(x => x.Property.Name).ToList();
+        }
+    }
+
+    public class FieldAsProperty : PropertyInfo
+    {
+        private readonly FieldInfo _field;
+
+        public FieldAsProperty(FieldInfo field)
+        {
+            _field = field;
+        }
+
+        public override string Name => _field.Name;
+        public override Type PropertyType => _field.FieldType;
+        public override bool CanWrite => !_field.IsInitOnly && !_field.IsLiteral;
+        public override bool CanRead => true;
+
+        public override object GetValue(object obj, BindingFlags invokeAttr, Binder binder, object[] index, System.Globalization.CultureInfo culture)
+        {
+            return _field.GetValue(obj);
+        }
+
+        public override void SetValue(object obj, object value, BindingFlags invokeAttr, Binder binder, object[] index, System.Globalization.CultureInfo culture)
+        {
+            _field.SetValue(obj, value);
+        }
+
+        public override PropertyAttributes Attributes => PropertyAttributes.None;
+        public override Type DeclaringType => _field.DeclaringType;
+        public override Type ReflectedType => _field.ReflectedType;
+
+        public override MethodInfo GetGetMethod(bool nonPublic) => null;
+        public override MethodInfo GetSetMethod(bool nonPublic) => null;
+        public override MethodInfo[] GetAccessors(bool nonPublic) => new MethodInfo[0];
+
+        public override ParameterInfo[] GetIndexParameters() => new ParameterInfo[0];
+        public override object[] GetCustomAttributes(Type attributeType, bool inherit) => _field.GetCustomAttributes(attributeType, inherit);
+        public override object[] GetCustomAttributes(bool inherit) => _field.GetCustomAttributes(inherit);
+        public override bool IsDefined(Type attributeType, bool inherit) => _field.IsDefined(attributeType, inherit);
+    }
+
+    public class AlgorithmParameterInfo
+    {
+        public PropertyInfo Property { get; set; }
+        public string DisplayText { get; set; }
+        public Type ParameterType { get; set; }
+        public string FriendlyTypeName { get; set; }
+        public string DefaultValue { get; set; }
+        public string ValueHint { get; set; }
+
+        public AlgorithmParameterInfo(PropertyInfo property)
+        {
+            Property = property;
+            ParameterType = property.PropertyType;
+            FriendlyTypeName = ParameterHelper.GetFriendlyTypeName(property.PropertyType);
+            DisplayText = ParameterHelper.CreateParameterDisplayText(property.Name, property.PropertyType);
+            DefaultValue = ParameterHelper.GetDefaultValue(property.PropertyType);
+            ValueHint = ParameterHelper.GetValueHint(property.PropertyType);
+        }
+
+        public AlgorithmParameterInfo(FieldInfo field)
+        {
+            Property = new FieldAsProperty(field);
+            ParameterType = field.FieldType;
+            FriendlyTypeName = ParameterHelper.GetFriendlyTypeName(field.FieldType);
+            DisplayText = ParameterHelper.CreateParameterDisplayText(field.Name, field.FieldType);
+            DefaultValue = ParameterHelper.GetDefaultValue(field.FieldType);
+            ValueHint = ParameterHelper.GetValueHint(field.FieldType);
         }
     }
 }

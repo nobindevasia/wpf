@@ -74,5 +74,41 @@ namespace D2G.Iris.ML.ConfigUI.WPF.Services
 
             return null;
         }
+
+        public bool? ShowInputFieldDialog(object viewModel)
+        {
+            try
+            {
+                var dialog = new InputFieldDialog
+                {
+                    DataContext = viewModel,
+                    Owner = Application.Current.MainWindow
+                };
+                return dialog.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                ShowErrorDialog($"Error showing input field dialog: {ex.Message}", "Dialog Error");
+                return false;
+            }
+        }
+
+        public bool? ShowParameterDialog(object viewModel)
+        {
+            try
+            {
+                var dialog = new ParameterDialog
+                {
+                    DataContext = viewModel,
+                    Owner = Application.Current.MainWindow
+                };
+                return dialog.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                ShowErrorDialog($"Error showing parameter dialog: {ex.Message}", "Dialog Error");
+                return false;
+            }
+        }
     }
 }

@@ -25,5 +25,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.Services
         string? ShowSaveFileDialog(string filter, string defaultExtension, string defaultFileName);
         string? ShowOpenFileDialog(string filter);
         T? ShowDialog<T>(object viewModel) where T : class;
+        bool? ShowInputFieldDialog(object viewModel);
+        bool? ShowParameterDialog(object viewModel);
     }
 }

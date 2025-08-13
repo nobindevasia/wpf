@@ -8,7 +8,7 @@
              d:DesignHeight="450" d:DesignWidth="600">
 
     <UserControl.Resources>
-        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <converters:StringToDecimalConverter x:Key="StringToDecimalConverter"/>
     </UserControl.Resources>
 

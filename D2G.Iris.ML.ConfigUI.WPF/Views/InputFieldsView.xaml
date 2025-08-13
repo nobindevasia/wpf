@@ -8,7 +8,8 @@
              d:DesignHeight="450" d:DesignWidth="600">
 
     <UserControl.Resources>
-        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     </UserControl.Resources>
 
     <GroupBox Header="Input Fields" Margin="10">

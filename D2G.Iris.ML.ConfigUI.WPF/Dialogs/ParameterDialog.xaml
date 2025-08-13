@@ -5,10 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="Algorithm Parameter"
-        Height="250" Width="450"
+        Height="220" Width="450"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         ShowInTaskbar="False">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Window.Resources>
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -29,9 +33,12 @@
 
         <!-- Parameter Name -->
         <Label Grid.Row="0" Grid.Column="0" Content="Parameter Name:" VerticalAlignment="Center"/>
-        <TextBox Grid.Row="0" Grid.Column="1" 
-                 Text="{Binding ParameterName, UpdateSourceTrigger=PropertyChanged}" 
-                 VerticalAlignment="Center" Height="25"/>
+        <ComboBox Grid.Row="0" Grid.Column="1" 
+                  ItemsSource="{Binding AvailableParameters}"
+                  Text="{Binding ParameterName, UpdateSourceTrigger=PropertyChanged}"
+                  IsEditable="True"
+                  VerticalAlignment="Center" Height="25"
+                  ToolTip="{Binding AlgorithmTooltip}"/>
 
         <!-- Parameter Value -->
         <Label Grid.Row="2" Grid.Column="0" Content="Parameter Value:" VerticalAlignment="Center"/>
@@ -39,34 +46,29 @@
                  Text="{Binding ParameterValueString, UpdateSourceTrigger=PropertyChanged}" 
                  VerticalAlignment="Center" Height="25"/>
 
-        <!-- Value Hint -->
-        <Label Grid.Row="4" Grid.Column="0" Content="Hint:" VerticalAlignment="Top"/>
-        <TextBlock Grid.Row="4" Grid.Column="1" 
-                   Text="Enter integer, decimal, boolean (true/false), or text value"
-                   TextWrapping="Wrap" 
-                   Foreground="Gray"
-                   VerticalAlignment="Top"/>
 
-        <!-- Example -->
-        <TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" 
-                   Text="Examples: 20 (integer), 0.1 (decimal), true (boolean), 'text' (string)"
+
+        <!-- Error Message -->
+        <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" 
+                   Text="{Binding ErrorMessage}"
                    TextWrapping="Wrap" 
-                   Foreground="DarkBlue"
-                   FontStyle="Italic"/>
+                   Foreground="Red"
+                   FontWeight="Bold"
+                   Visibility="{Binding HasError, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="-49,2,0,13" Grid.RowSpan="2"/>
 
         <!-- Buttons -->
-        <StackPanel Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" 
-                    Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+        <StackPanel Grid.Row="6" Grid.Column="1" 
+                    Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,1,16,5">
 
             <Button Content="OK" 
                     Click="OkButton_Click"
                     IsDefault="True"
-                    Width="80" Height="30" Margin="0,0,10,0"/>
+                    Width="55" Height="22" RenderTransformOrigin="0.545,-0.534"/>
 
             <Button Content="Cancel" 
                     Click="CancelButton_Click"
                     IsCancel="True"
-                    Width="80" Height="30"/>
+                    Width="70" Height="18"/>
         </StackPanel>
     </Grid>
 </Window>

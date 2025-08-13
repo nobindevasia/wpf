@@ -30,12 +30,13 @@ namespace D2G.Iris.ML.ConfigUI.WPF
             services.AddTransient<AutoMLSettingsViewModel>();
             services.AddTransient<TrainingLogsViewModel>();
 
-            // Register Main Window
-            services.AddSingleton<MainWindow>();
-
+            // Build the service provider
             _serviceProvider = services.BuildServiceProvider();
 
-            var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+            // Create and show the main window
+            var mainWindowViewModel = _serviceProvider.GetRequiredService<MainWindowViewModel>();
+            var mainWindow = new MainWindow(mainWindowViewModel);
+
             mainWindow.Show();
 
             base.OnStartup(e);

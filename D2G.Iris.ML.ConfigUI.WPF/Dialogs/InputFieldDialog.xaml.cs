@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using D2G.Iris.ML.ConfigUI.WPF.ViewModels;
+using D2G.Iris.ML.ConfigUI.WPF.Dialogs;
 
 namespace D2G.Iris.ML.ConfigUI.WPF.Dialogs
 {

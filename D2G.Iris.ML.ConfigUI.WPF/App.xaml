@@ -1,11 +1,10 @@
 ﻿<Application x:Class="D2G.Iris.ML.ConfigUI.WPF.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:converters="clr-namespace:D2G.Iris.ML.ConfigUI.WPF.Converters"
-             StartupUri="MainWindow.xaml">
+             xmlns:converters="clr-namespace:D2G.Iris.ML.ConfigUI.WPF.Converters">
     <Application.Resources>
         <!-- Global Converters -->
-        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
         <converters:EnumToStringConverter x:Key="EnumToStringConverter"/>
         <converters:StringToDecimalConverter x:Key="StringToDecimalConverter"/>

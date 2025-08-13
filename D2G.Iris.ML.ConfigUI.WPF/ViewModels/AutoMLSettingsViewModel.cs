@@ -1,5 +1,4 @@
 ﻿using D2G.Iris.ML.Core.Models;
-using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,19 +10,18 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
     public class AutoMLSettingsViewModel : BaseViewModel
     {
         private bool _isEnabled;
-        private int _maxExperimentSettingsInSeconds = 30;
+        private int _maxExperimentTimeInSeconds = 30;
         private string _optimizingMetric = "Accuracy";
         private string _description = "AutoML is disabled. Traditional training will be used with the algorithm specified in Training Parameters.";
-    
 
-    public AutoMLSettingsViewModel()
+        public AutoMLSettingsViewModel()
         {
             UpdateDescription();
         }
 
         #region Properties
 
-        public bool isEnabled
+        public bool IsEnabled
         {
             get => _isEnabled;
             set
@@ -37,8 +35,8 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 
         public int MaxExperimentTimeInSeconds
         {
-            get => _maxExperimentSettingsInSeconds;
-            set => SetProperty(ref _maxExperimentSettingsInSeconds, System.Math.Max(1, System.Math.Min(3600, value)));
+            get => _maxExperimentTimeInSeconds;
+            set => SetProperty(ref _maxExperimentTimeInSeconds, System.Math.Max(1, System.Math.Min(3600, value)));
         }
 
         public string OptimizingMetric
@@ -68,7 +66,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 
         private void UpdateDescription()
         {
-            Description = isEnabled ? "AutoML will automatically try multiple algorithms and find the best performing model for your data."
+            Description = IsEnabled ? "AutoML will automatically try multiple algorithms and find the best performing model for your data."
                 : "AutoML is disabled. Traditional training will be used with the algorithm specified in Training Parameters.";
         }
 
@@ -76,12 +74,12 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         {
             if (config == null)
             {
-                isEnabled = false;
-                MaxExperimentTimeInSeconds = 20;
+                IsEnabled = false;
+                MaxExperimentTimeInSeconds = 30;
                 OptimizingMetric = "Accuracy";
                 return;
             }
-            isEnabled = config.Enabled;
+            IsEnabled = config.Enabled;
             MaxExperimentTimeInSeconds = config.MaxExperimentTimeInSeconds;
             OptimizingMetric = config.OptimizingMetric ?? "Accuracy";
         }
@@ -90,7 +88,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         {
             return new AutoMLConfig
             {
-                Enabled = isEnabled,
+                Enabled = IsEnabled,
                 MaxExperimentTimeInSeconds = MaxExperimentTimeInSeconds,
                 OptimizingMetric = OptimizingMetric
             };

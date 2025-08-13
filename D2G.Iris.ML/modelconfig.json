@@ -1,7 +1,7 @@
 {
   "modelConfig": {
     "author": "Nobin Devasia",
-    "description": "Model for Agenitor 408 with AutoML",
+    "description": "Model for Agenitor 408",
     "modelType": "BinaryClassification",
     "targetField": "Label",
 

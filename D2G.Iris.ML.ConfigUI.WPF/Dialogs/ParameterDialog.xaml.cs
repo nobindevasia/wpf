@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using D2G.Iris.ML.ConfigUI.WPF.ViewModels;
+using D2G.Iris.ML.ConfigUI.WPF.Dialogs;
 
 namespace D2G.Iris.ML.ConfigUI.WPF.Dialogs
 {
@@ -24,6 +25,13 @@ namespace D2G.Iris.ML.ConfigUI.WPF.Dialogs
                 if (string.IsNullOrWhiteSpace(viewModel.ParameterValueString))
                 {
                     MessageBox.Show("Parameter value cannot be empty.", "Validation Error",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (viewModel.HasError)
+                {
+                    MessageBox.Show($"Please correct the error: {viewModel.ErrorMessage}", "Validation Error",
                         MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
