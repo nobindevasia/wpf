@@ -101,10 +101,8 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 
         private void OnAlgorithmChanged()
         {
-            // Clear existing parameters when algorithm changes
             Parameters.Clear();
 
-            // Load default parameters if available
             LoadAvailableParameters(SelectedAlgorithm);
         }
 

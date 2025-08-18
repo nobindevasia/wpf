@@ -17,7 +17,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         {
             if (Equals(field, value))
                 return false;
-
+            
             field = value;
             OnPropertyChanged(propertyName);
             return true;
