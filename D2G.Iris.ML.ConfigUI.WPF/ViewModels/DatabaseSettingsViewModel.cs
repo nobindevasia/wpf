@@ -2,6 +2,7 @@
 using D2G.Iris.ML.ConfigUI.WPF.Commands;
 using D2G.Iris.ML.ConfigUI.WPF.Services;
 using D2G.Iris.ML.Core.Models;
+using D2G.Iris.ML.ConfigUI.WPF.Dialogs;
 
 namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 {
@@ -57,12 +58,14 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         #region Commands
 
         public ICommand TestConnectionCommand { get; private set; } = null!;
+        public ICommand ExploreDatabaseCommand { get; private set; } = null!;
 
         #endregion
 
         private void InitializeCommands()
         {
             TestConnectionCommand = new RelayCommand(TestConnection);
+            ExploreDatabaseCommand = new RelayCommand(OpenDatabaseExplorer);
         }
 
         private void TestConnection()
@@ -84,6 +87,24 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             catch (System.Exception ex)
             {
                 _dialogService.ShowErrorDialog($"Connection error: {ex.Message}", "Database Connection");
+            }
+        }
+
+        private void OpenDatabaseExplorer()
+        {
+            try
+            {
+                var explorerViewModel = new DatabaseExplorerViewModel(_dialogService, Server, Database);
+                var result = _dialogService.ShowDialog<DatabaseExplorerDialog>(explorerViewModel);
+                if (result != null && explorerViewModel.SelectedTable != null)
+                {
+                    Database = explorerViewModel.SelectedDatabase ?? Database;
+                    TableName = explorerViewModel.SelectedTable.FullName;
+                }
+            }
+            catch (System.Exception ex)
+            {
+                _dialogService.ShowErrorDialog($"Error exploring database: {ex.Message}", "Database Explorer");
             }
         }
 

@@ -59,6 +59,10 @@ namespace D2G.Iris.ML.ConfigUI.WPF.Services
                 {
                     dialog = new ParameterDialog { DataContext = viewModel };
                 }
+                else if (typeof(T) == typeof(DatabaseExplorerDialog))
+                {
+                    dialog = new DatabaseExplorerDialog { DataContext = viewModel };
+                }
 
                 if (dialog != null)
                 {
