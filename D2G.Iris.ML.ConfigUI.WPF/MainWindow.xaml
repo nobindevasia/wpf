@@ -56,11 +56,6 @@
                 <views:InputFieldsView DataContext="{Binding InputFields}"/>
             </TabItem>
 
-            <!-- Training Parameters Tab -->
-            <TabItem Header="Training Parameters">
-                <views:TrainingParametersView DataContext="{Binding TrainingParameters}"/>
-            </TabItem>
-
             <!-- Data Balancing Tab -->
             <TabItem Header="Data Balancing">
                 <views:DataBalancingView DataContext="{Binding DataBalancing}"/>
@@ -71,9 +66,9 @@
                 <views:FeatureEngineeringView DataContext="{Binding FeatureEngineering}"/>
             </TabItem>
 
-            <!-- AutoML Tab -->
-            <TabItem Header="AutoML">
-                <views:AutoMLSettingsView DataContext="{Binding AutoMLSettings}"/>
+            <!-- Training Parameters Tab (now includes AutoML) -->
+            <TabItem Header="Training Parameters">
+                <views:TrainingParametersView DataContext="{Binding TrainingParameters}"/>
             </TabItem>
 
             <!-- Training Logs Tab -->

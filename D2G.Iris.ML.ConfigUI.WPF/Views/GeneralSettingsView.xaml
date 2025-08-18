@@ -16,38 +16,54 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="15"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="15"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="120"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="200"/>
             </Grid.ColumnDefinitions>
 
+            <!-- Project Name -->
+            <Label Grid.Row="0" Grid.Column="0" Content="Project Name:" VerticalAlignment="Center" FontWeight="Bold"/>
+            <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3"
+                     Text="{Binding ProjectName, UpdateSourceTrigger=PropertyChanged}" 
+                     VerticalAlignment="Center" Height="25"/>
+
             <!-- Author -->
-            <Label Grid.Row="0" Grid.Column="0" Content="Author:" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="0" Grid.Column="1" 
+            <Label Grid.Row="2" Grid.Column="0" Content="Author:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3"
                      Text="{Binding Author, UpdateSourceTrigger=PropertyChanged}" 
                      VerticalAlignment="Center" Height="25"/>
 
+            <!-- Created Date and Last Modified -->
+            <Label Grid.Row="4" Grid.Column="0" Content="Created Date:" VerticalAlignment="Center"/>
+            <DatePicker Grid.Row="4" Grid.Column="1" 
+                        SelectedDate="{Binding CreatedDate}"
+                        VerticalAlignment="Center" Height="25" Margin="0,0,10,0"/>
+
+            <Label Grid.Row="4" Grid.Column="2" Content="Last Modified:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="4" Grid.Column="3" 
+                     Text="{Binding LastModified, StringFormat='yyyy-MM-dd HH:mm'}" 
+                     VerticalAlignment="Center" Height="25" IsReadOnly="True" 
+                     Background="LightGray" FontSize="11"/>
+
             <!-- Description -->
-            <Label Grid.Row="2" Grid.Column="0" Content="Description:" VerticalAlignment="Top" Margin="0,5,0,0"/>
-            <TextBox Grid.Row="2" Grid.Column="1" 
+            <Label Grid.Row="6" Grid.Column="0" Content="Description:" VerticalAlignment="Top" Margin="0,5,0,0"/>
+            <TextBox Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="3"
                      Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
                      AcceptsReturn="True" TextWrapping="Wrap" 
                      VerticalScrollBarVisibility="Auto" Height="80"/>
 
-            <!-- Model Type -->
-            <Label Grid.Row="4" Grid.Column="0" Content="Model Type:" VerticalAlignment="Center"/>
-            <ComboBox Grid.Row="4" Grid.Column="1" 
-                      ItemsSource="{Binding AvailableModelTypes}"
-                      SelectedItem="{Binding ModelType}"
-                      VerticalAlignment="Center" Height="25"/>
-
-            <!-- Target Field -->
-            <Label Grid.Row="6" Grid.Column="0" Content="Target Field:" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="6" Grid.Column="1" 
-                     Text="{Binding TargetField, UpdateSourceTrigger=PropertyChanged}" 
-                     VerticalAlignment="Center" Height="25"/>
+            <!-- Notes -->
+            <Label Grid.Row="8" Grid.Column="0" Content="Notes:" VerticalAlignment="Top" Margin="0,5,0,0"/>
+            <TextBox Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="3"
+                     Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" 
+                     AcceptsReturn="True" TextWrapping="Wrap" 
+                     VerticalScrollBarVisibility="Auto" Height="80"/>
         </Grid>
     </GroupBox>
 </UserControl>

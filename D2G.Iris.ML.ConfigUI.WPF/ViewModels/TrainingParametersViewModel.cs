@@ -20,16 +20,55 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         private ModelType _currentModelType = ModelType.BinaryClassification;
         private Models.ParameterItem? _selectedParameter;
 
+        // AutoML properties
+        private bool _useAutoML = false;
+        private int _maxExperimentTimeInSeconds = 30;
+        private string _optimizingMetric = "Accuracy";
+
+        // Model configuration properties
+        private ModelType _modelType = ModelType.BinaryClassification;
+        private string _targetField = "Label";
+
+        public event Action<ModelType>? ModelTypeChanged;
+
         public TrainingParametersViewModel(IDialogService dialogService)
         {
             _dialogService = dialogService;
             Parameters = new ObservableCollection<Models.ParameterItem>();
             InitializeCommands();
             UpdateAvailableAlgorithms();
+            UpdateAvailableMetrics();
         }
 
         #region Properties
 
+        public bool UseAutoML
+        {
+            get => _useAutoML;
+            set
+            {
+                if (SetProperty(ref _useAutoML, value))
+                {
+                    OnPropertyChanged(nameof(UseTraditionalTraining));
+                    OnPropertyChanged(nameof(TrainingModeDescription));
+                }
+            }
+        }
+
+        public bool UseTraditionalTraining
+        {
+            get => !_useAutoML;
+            set => UseAutoML = !value;
+        }
+
+        public string TrainingModeDescription
+        {
+            get => UseAutoML
+                ? "AutoML will automatically try multiple algorithms and find the best performing model. Data splitting is handled automatically using cross-validation."
+                : "Traditional training uses the specified algorithm with configured parameters. You can specify the test fraction for evaluation.";
+        }
+
+        // Traditional Training Properties
         public string SelectedAlgorithm
         {
             get => _selectedAlgorithm;
@@ -58,6 +97,56 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             set => SetProperty(ref _selectedParameter, value);
         }
 
+        // AutoML Properties
+        public int MaxExperimentTimeInSeconds
+        {
+            get => _maxExperimentTimeInSeconds;
+            set => SetProperty(ref _maxExperimentTimeInSeconds, Math.Max(1, Math.Min(3600, value)));
+        }
+
+        public string OptimizingMetric
+        {
+            get => _optimizingMetric;
+            set => SetProperty(ref _optimizingMetric, value);
+        }
+
+        public List<string> AvailableMetrics { get; } = new()
+        {
+            "Accuracy",
+            "AUC",
+            "F1Score",
+            "MicroAccuracy",
+            "MacroAccuracy",
+            "RSquared",
+            "MeanAbsoluteError",
+            "RootMeanSquaredError"
+        };
+
+        // Model Configuration Properties
+        public ModelType ModelType
+        {
+            get => _modelType;
+            set
+            {
+                if (SetProperty(ref _modelType, value))
+                {
+                    _currentModelType = value;
+                    ModelTypeChanged?.Invoke(value);
+                    UpdateAvailableAlgorithms();
+                    UpdateAvailableMetrics();
+                    Parameters.Clear();
+                }
+            }
+        }
+
+        public string TargetField
+        {
+            get => _targetField;
+            set => SetProperty(ref _targetField, value);
+        }
+
+        public IEnumerable<ModelType> AvailableModelTypes => Enum.GetValues<ModelType>();
+
         #endregion
 
         #region Commands
@@ -78,8 +167,11 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             if (_currentModelType != modelType)
             {
                 _currentModelType = modelType;
+                _modelType = modelType; // Also update the backing field
                 UpdateAvailableAlgorithms();
                 Parameters.Clear();
+                UpdateAvailableMetrics();
+                OnPropertyChanged(nameof(ModelType));
             }
         }
 
@@ -99,10 +191,32 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             }
         }
 
+        private void UpdateAvailableMetrics()
+        {
+            AvailableMetrics.Clear();
+
+            switch (_currentModelType)
+            {
+                case ModelType.BinaryClassification:
+                    AvailableMetrics.AddRange(new[] { "Accuracy", "AUC", "F1Score" });
+                    break;
+                case ModelType.MultiClassClassification:
+                    AvailableMetrics.AddRange(new[] { "MicroAccuracy", "MacroAccuracy" });
+                    break;
+                case ModelType.Regression:
+                    AvailableMetrics.AddRange(new[] { "RSquared", "MeanAbsoluteError", "RootMeanSquaredError" });
+                    break;
+            }
+
+            if (AvailableMetrics.Count > 0 && !AvailableMetrics.Contains(OptimizingMetric))
+            {
+                OptimizingMetric = AvailableMetrics[0];
+            }
+        }
+
         private void OnAlgorithmChanged()
         {
             Parameters.Clear();
-
             LoadAvailableParameters(SelectedAlgorithm);
         }
 
@@ -113,14 +227,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 Type? optionsType = AlgorithmRegistry.GetOptionsType(algorithmName, _currentModelType);
                 if (optionsType == null) return;
 
-                // Clear existing parameters
                 Parameters.Clear();
-
-                // Get available parameters for this algorithm
-                var properties = ParameterHelper.GetConfigurableProperties(optionsType);
-                var fields = ParameterHelper.GetConfigurableFields(optionsType);
-
-                // Add tooltips or descriptions for better UX
                 OnPropertyChanged(nameof(AlgorithmTooltip));
             }
             catch (Exception ex)
@@ -189,8 +296,27 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             }
         }
 
-        public void SetConfiguration(TrainingParameters? parameters)
+        public void SetConfiguration(TrainingParameters? parameters, AutoMLConfig? autoMLConfig, ModelType modelType, string targetField)
         {
+            // Set model configuration
+            ModelType = modelType;
+            TargetField = targetField ?? "Label";
+
+            // Set AutoML configuration
+            if (autoMLConfig != null)
+            {
+                UseAutoML = autoMLConfig.Enabled;
+                MaxExperimentTimeInSeconds = autoMLConfig.MaxExperimentTimeInSeconds;
+                OptimizingMetric = autoMLConfig.OptimizingMetric ?? "Accuracy";
+            }
+            else
+            {
+                UseAutoML = false;
+                MaxExperimentTimeInSeconds = 30;
+                OptimizingMetric = "Accuracy";
+            }
+
+            // Set traditional training parameters
             if (parameters == null) return;
 
             if (!string.IsNullOrEmpty(parameters.Algorithm))
@@ -218,7 +344,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             }
         }
 
-        public TrainingParameters GetConfiguration()
+        public (TrainingParameters trainingParams, AutoMLConfig autoMLConfig, ModelType modelType, string targetField) GetConfiguration()
         {
             var algorithmParameters = new Dictionary<string, object>();
             foreach (var param in Parameters)
@@ -229,219 +355,21 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 }
             }
 
-            return new TrainingParameters
+            var trainingParams = new TrainingParameters
             {
                 Algorithm = SelectedAlgorithm,
                 TestFraction = (double)TestFraction,
                 AlgorithmParameters = algorithmParameters
             };
-        }
-    }
 
-    public class ParameterDialogViewModel : BaseViewModel
-    {
-        private string _parameterName = "";
-        private string _parameterValueString = "";
-        private object? _parameterValue;
-        private string _valueHint = "";
-        private string _errorMessage = "";
-        private bool _hasError;
-        private readonly string _algorithmName;
-        private readonly ModelType _modelType;
-        private Type? _selectedParameterType;
-
-        public ParameterDialogViewModel(string algorithmName, ModelType modelType)
-        {
-            _algorithmName = algorithmName;
-            _modelType = modelType;
-            LoadAvailableParameters();
-        }
-
-        #region Properties
-
-        public string ParameterName
-        {
-            get => _parameterName;
-            set
+            var autoMLConfig = new AutoMLConfig
             {
-                if (SetProperty(ref _parameterName, value))
-                {
-                    OnParameterNameChanged();
-                    OnPropertyChanged(nameof(IsValid));
-                }
-            }
-        }
+                Enabled = UseAutoML,
+                MaxExperimentTimeInSeconds = MaxExperimentTimeInSeconds,
+                OptimizingMetric = OptimizingMetric
+            };
 
-        public string ParameterValueString
-        {
-            get => _parameterValueString;
-            set
-            {
-                if (SetProperty(ref _parameterValueString, value))
-                {
-                    ValidateAndSetValue();
-                    OnPropertyChanged(nameof(IsValid));
-                }
-            }
-        }
-
-        public object? ParameterValue
-        {
-            get => _parameterValue;
-            private set => SetProperty(ref _parameterValue, value);
-        }
-
-        public string ValueHint
-        {
-            get => _valueHint;
-            private set => SetProperty(ref _valueHint, value);
-        }
-
-        public string ErrorMessage
-        {
-            get => _errorMessage;
-            private set => SetProperty(ref _errorMessage, value);
-        }
-
-        public bool HasError
-        {
-            get => _hasError;
-            private set => SetProperty(ref _hasError, value);
-        }
-
-        public List<string> AvailableParameters { get; private set; } = new List<string>();
-
-        public string AlgorithmTooltip { get; private set; } = "";
-
-        public bool IsValid => !HasError && !string.IsNullOrWhiteSpace(ParameterName) && !string.IsNullOrWhiteSpace(ParameterValueString);
-
-        #endregion
-
-        private void LoadAvailableParameters()
-        {
-            try
-            {
-                var optionsType = AlgorithmRegistry.GetOptionsType(_algorithmName, _modelType);
-                if (optionsType != null)
-                {
-                    AvailableParameters = ParameterHelper.GetParameterDisplayList(optionsType);
-                    AlgorithmTooltip = ParameterHelper.CreateParameterTooltip(optionsType);
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error loading parameters: {ex.Message}");
-            }
-        }
-
-        private void OnParameterNameChanged()
-        {
-            ClearError();
-
-            try
-            {
-                var optionsType = AlgorithmRegistry.GetOptionsType(_algorithmName, _modelType);
-                if (optionsType == null) return;
-
-                // Find the property or field
-                var property = optionsType.GetProperty(_parameterName);
-                var field = optionsType.GetField(_parameterName);
-
-                if (property != null)
-                {
-                    _selectedParameterType = property.PropertyType;
-                    ValueHint = ParameterHelper.GetValueHint(property.PropertyType);
-
-                    // Set default value
-                    if (string.IsNullOrEmpty(ParameterValueString))
-                    {
-                        ParameterValueString = ParameterHelper.GetDefaultValue(property.PropertyType);
-                    }
-                }
-                else if (field != null)
-                {
-                    _selectedParameterType = field.FieldType;
-                    ValueHint = ParameterHelper.GetValueHint(field.FieldType);
-
-                    // Set default value
-                    if (string.IsNullOrEmpty(ParameterValueString))
-                    {
-                        ParameterValueString = ParameterHelper.GetDefaultValue(field.FieldType);
-                    }
-                }
-                else
-                {
-                    _selectedParameterType = null;
-                    ValueHint = "Enter a value";
-                }
-            }
-            catch (Exception ex)
-            {
-                SetError($"Error getting parameter info: {ex.Message}");
-            }
-        }
-
-        private void ValidateAndSetValue()
-        {
-            ClearError();
-
-            if (string.IsNullOrWhiteSpace(ParameterValueString))
-            {
-                ParameterValue = null;
-                return;
-            }
-
-            if (_selectedParameterType == null)
-            {
-                // Fallback to basic parsing
-                TryBasicParsing();
-                return;
-            }
-
-            try
-            {
-                ParameterValue = ParameterHelper.ConvertParameterValue(ParameterValueString, _selectedParameterType);
-            }
-            catch (Exception ex)
-            {
-                SetError($"Invalid value for {ParameterHelper.GetFriendlyTypeName(_selectedParameterType)}: {ex.Message}");
-                // Still try basic parsing as fallback
-                TryBasicParsing();
-            }
-        }
-
-        private void TryBasicParsing()
-        {
-            try
-            {
-                // Try to parse the value based on common types
-                if (int.TryParse(ParameterValueString, out int intValue))
-                    ParameterValue = intValue;
-                else if (double.TryParse(ParameterValueString, out double doubleValue))
-                    ParameterValue = doubleValue;
-                else if (bool.TryParse(ParameterValueString, out bool boolValue))
-                    ParameterValue = boolValue;
-                else
-                    ParameterValue = ParameterValueString;
-            }
-            catch
-            {
-                ParameterValue = ParameterValueString;
-            }
-        }
-
-        private void SetError(string message)
-        {
-            ErrorMessage = message;
-            HasError = true;
-            OnPropertyChanged(nameof(IsValid));
-        }
-
-        private void ClearError()
-        {
-            ErrorMessage = "";
-            HasError = false;
-            OnPropertyChanged(nameof(IsValid));
+            return (trainingParams, autoMLConfig, ModelType, TargetField);
         }
     }
 }

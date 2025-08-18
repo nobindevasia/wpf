@@ -63,7 +63,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         public TrainingParametersViewModel TrainingParameters { get; private set; } = null!;
         public DataBalancingViewModel DataBalancing { get; private set; } = null!;
         public FeatureEngineeringViewModel FeatureEngineering { get; private set; } = null!;
-        public AutoMLSettingsViewModel AutoMLSettings { get; private set; } = null!;
         public TrainingLogsViewModel TrainingLogs { get; private set; } = null!;
 
         #endregion
@@ -86,14 +85,13 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             TrainingParameters = new TrainingParametersViewModel(_dialogService);
             DataBalancing = new DataBalancingViewModel();
             FeatureEngineering = new FeatureEngineeringViewModel();
-            AutoMLSettings = new AutoMLSettingsViewModel();
             TrainingLogs = new TrainingLogsViewModel();
 
-            // Subscribe to model type changes
-            GeneralSettings.ModelTypeChanged += OnModelTypeChanged;
+            // Subscribe to model type changes from TrainingParameters instead of GeneralSettings
+            TrainingParameters.ModelTypeChanged += OnModelTypeChanged;
 
-            // Wire up dependencies
-            InputFields.SetDependencies(() => DatabaseSettings.GetConfiguration(), () => GeneralSettings.TargetField);
+            // Wire up dependencies - now gets target field from TrainingParameters
+            InputFields.SetDependencies(() => DatabaseSettings.GetConfiguration(), () => TrainingParameters.TargetField);
         }
 
         private void InitializeCommands()
@@ -107,7 +105,8 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 
         private void OnModelTypeChanged(ModelType newModelType)
         {
-            TrainingParameters.SetModelType(newModelType);
+            // The TrainingParameters already handles its own model type changes
+            // This is here for any additional logic that might be needed
         }
 
         private void LoadExistingConfigOnStartup()
@@ -298,8 +297,8 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                     return;
                 }
 
-                // Switch to logs tab
-                SelectedTabIndex = 7; // Assuming logs tab is at index 7
+                // Switch to logs tab (Training Logs is now at index 6)
+                SelectedTabIndex = 6;
 
                 TrainingLogs.ClearLogs();
                 IsTraining = true;
@@ -409,10 +408,14 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             GeneralSettings.SetConfiguration(_currentConfig);
             DatabaseSettings.SetConfiguration(_currentConfig.Database);
             InputFields.SetConfiguration(_currentConfig.InputFields);
-            TrainingParameters.SetConfiguration(_currentConfig.TrainingParameters);
+            // Pass model type and target field to TrainingParameters
+            TrainingParameters.SetConfiguration(
+                _currentConfig.TrainingParameters,
+                _currentConfig.AutoML,
+                _currentConfig.ModelType,
+                _currentConfig.TargetField);
             DataBalancing.SetConfiguration(_currentConfig.DataBalancing);
             FeatureEngineering.SetConfiguration(_currentConfig.FeatureEngineering);
-            AutoMLSettings.SetConfiguration(_currentConfig.AutoML);
         }
 
         private void UpdateConfigFromUI()
@@ -422,10 +425,16 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             GeneralSettings.UpdateConfiguration(_currentConfig);
             _currentConfig.Database = DatabaseSettings.GetConfiguration();
             _currentConfig.InputFields = InputFields.GetConfiguration();
-            _currentConfig.TrainingParameters = TrainingParameters.GetConfiguration();
+
+            // Get all configuration from TrainingParameters including model type and target field
+            var (trainingParams, autoMLConfig, modelType, targetField) = TrainingParameters.GetConfiguration();
+            _currentConfig.TrainingParameters = trainingParams;
+            _currentConfig.AutoML = autoMLConfig;
+            _currentConfig.ModelType = modelType;
+            _currentConfig.TargetField = targetField;
+
             _currentConfig.DataBalancing = DataBalancing.GetConfiguration();
             _currentConfig.FeatureEngineering = FeatureEngineering.GetConfiguration();
-            _currentConfig.AutoML = AutoMLSettings.GetConfiguration();
         }
     }
 }
