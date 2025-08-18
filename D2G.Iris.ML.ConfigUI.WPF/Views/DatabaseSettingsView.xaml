@@ -42,9 +42,11 @@
 
             <!-- Table Name -->
             <Label Grid.Row="4" Grid.Column="0" Content="Table Name:" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="4" Grid.Column="1" 
-                     Text="{Binding TableName, UpdateSourceTrigger=PropertyChanged}" 
+            <TextBox Grid.Row="4" Grid.Column="1"
+                     Text="{Binding TableName, UpdateSourceTrigger=PropertyChanged}"
                      VerticalAlignment="Center" Height="25" Margin="0,0,10,0"/>
+            <Button Grid.Row="4" Grid.Column="2" Content="..." Width="30"
+                    Command="{Binding ExploreDatabaseCommand}"/>
 
             <!-- Where Clause -->
             <Label Grid.Row="6" Grid.Column="0" Content="Where Clause:" VerticalAlignment="Top" Margin="0,5,0,0"/>
