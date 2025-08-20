@@ -8,6 +8,8 @@
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
         <converters:EnumToStringConverter x:Key="EnumToStringConverter"/>
         <converters:StringToDecimalConverter x:Key="StringToDecimalConverter"/>
+        <converters:NotNullToBooleanConverter x:Key="NotNullToBooleanConverter"/>
+        <converters:NotNullToVisibilityConverter x:Key="NotNullToVisibilityConverter"/>
 
         <!-- Global Styles -->
         <Style TargetType="Button">

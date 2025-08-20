@@ -15,6 +15,11 @@ namespace D2G.Iris.ML.ConfigUI.WPF.Services
     {
         List<string> LoadTableColumns(DatabaseConfig config);
         bool TestConnection(DatabaseConfig config);
+        List<string> LoadDatabases(DatabaseConfig config);
+        List<TableInfo> LoadTables(DatabaseConfig config);
+        List<ColumnInfo> LoadTableSchema(DatabaseConfig config, string tableName);
+        System.Data.DataTable PreviewTableData(DatabaseConfig config, string tableName, int maxRows = 100);
+        long GetTableRowCount(DatabaseConfig config, string tableName);
     }
 
     public interface IDialogService

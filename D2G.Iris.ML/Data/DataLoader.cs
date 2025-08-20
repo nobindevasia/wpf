@@ -30,9 +30,11 @@ namespace D2G.Iris.ML.Data
         {
             Console.WriteLine("=============== Loading Data ===============");
 
-            string fullTableName = tableName.Contains('.')
-                ? string.Join('.', tableName.Split('.').Select(part => $"[{part}]"))
-                : $"[{tableName}]";
+            string fullTableName = tableName.Contains('[')
+                ? tableName 
+                : (tableName.Contains('.')
+                    ? string.Join('.', tableName.Split('.').Select(part => $"[{part}]"))
+                    : $"[{tableName}]");
 
             using (var conn = new SqlConnection(sqlConnectionString))
             {
@@ -47,7 +49,7 @@ namespace D2G.Iris.ML.Data
             }
 
             var allCols = featureColumns.Concat(new[] { targetColumn })
-                                        .Select(c => $"[{c}]");
+                                        .Select(c => c.Contains('[') ? c : $"[{c}]");
             var sql = $"SELECT {string.Join(", ", allCols)} FROM {fullTableName}" +
                       (!string.IsNullOrWhiteSpace(whereSyntax)
                             ? $" WHERE {whereSyntax}" : string.Empty);

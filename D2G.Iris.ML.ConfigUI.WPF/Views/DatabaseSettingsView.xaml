@@ -20,7 +20,6 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="15"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="150"/>
@@ -45,6 +44,11 @@
             <TextBox Grid.Row="4" Grid.Column="1" 
                      Text="{Binding TableName, UpdateSourceTrigger=PropertyChanged}" 
                      VerticalAlignment="Center" Height="25" Margin="0,0,10,0"/>
+            <Button Grid.Row="4" Grid.Column="2" 
+                    Content="Browse..."
+                    Command="{Binding ToggleExplorerCommand}"
+                    Width="80" Height="25"
+                    Background="LightGray"/>
 
             <!-- Where Clause -->
             <Label Grid.Row="6" Grid.Column="0" Content="Where Clause:" VerticalAlignment="Top" Margin="0,5,0,0"/>
@@ -66,6 +70,7 @@
                     HorizontalAlignment="Left"
                     Width="120" Height="30"
                     Background="LightBlue"/>
+
         </Grid>
     </GroupBox>
 </UserControl>
