@@ -166,14 +166,39 @@ namespace D2G.Iris.ML.Training
             var type = typeof(T);
             var members = type.GetMembers(BindingFlags.Public | BindingFlags.Instance)
                 .Where(m => m.MemberType == MemberTypes.Property || m.MemberType == MemberTypes.Field)
-                .ToDictionary(m => m.Name, m => m);
+                .ToDictionary(m => m.Name.ToLower(), m => m, StringComparer.OrdinalIgnoreCase);
+            
 
             foreach (var (key, value) in parameters)
             {
-                var memberName = char.ToUpper(key[0]) + key[1..];
-                if (!members.TryGetValue(memberName, out var member))
+                // Clean the parameter key by removing type information in parentheses
+                var cleanKey = key.Split('(')[0].Trim();
+                
+                // Direct lookup using lowercase key (since dictionary keys are already lowercase)
+                MemberInfo? member = null;
+                string? matchedName = null;
+
+                // Try direct lowercase lookup first
+                var lookupKey = cleanKey.ToLower();
+                if (members.TryGetValue(lookupKey, out member))
                 {
-                    Console.WriteLine($"Warning: Parameter '{memberName}' is not recognized on {type.Name}.");
+                    matchedName = cleanKey;
+                }
+
+                if (member == null)
+                {
+                    // Special handling for known parameter name mappings
+                    var mappedName = MapParameterName(cleanKey, type.Name);
+                    if (mappedName != null && members.TryGetValue(mappedName.ToLower(), out member))
+                    {
+                        matchedName = mappedName;
+                    }
+                }
+
+                if (member == null)
+                {
+                    Console.WriteLine($"Warning: Parameter '{cleanKey} ({GetParameterTypeName(value)})' is not recognized on {type.Name}.");
+                    Console.WriteLine($"Available parameters: {string.Join(", ", members.Keys)}");
                     continue;
                 }
 
@@ -196,9 +221,11 @@ namespace D2G.Iris.ML.Training
                     {
                         case PropertyInfo prop:
                             prop.SetValue(options, convertedValue);
+                            Console.WriteLine($"Successfully set parameter '{matchedName}' = {convertedValue}");
                             break;
                         case FieldInfo field:
                             field.SetValue(options, convertedValue);
+                            Console.WriteLine($"Successfully set parameter '{matchedName}' = {convertedValue}");
                             break;
                     }
                 }
@@ -207,6 +234,34 @@ namespace D2G.Iris.ML.Training
                     Console.WriteLine($"Warning: Failed to set parameter '{key}'. Error: {ex.Message}");
                 }
             }
+        }
+
+        private static string? MapParameterName(string parameterName, string optionsTypeName)
+        {
+            // Handle known parameter name mappings for specific trainer types
+            return optionsTypeName.ToLower() switch
+            {
+                var name when name.Contains("fasttree") => parameterName.ToLower() switch
+                {
+                    "allowemptytrees" => null, // This parameter doesn't exist in FastTreeBinaryTrainer.Options
+                    _ => null
+                },
+                _ => null
+            };
+        }
+
+        private static string GetParameterTypeName(object value)
+        {
+            return value switch
+            {
+                bool => "bool",
+                int => "int",
+                double => "double",
+                float => "float",
+                string => "string",
+                JsonElement jsonElement => jsonElement.ValueKind.ToString().ToLower(),
+                _ => value.GetType().Name.ToLower()
+            };
         }
 
         private static object ConvertJsonElement(JsonElement element, Type targetType)

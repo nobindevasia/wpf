@@ -56,14 +56,9 @@
                 <views:InputFieldsView DataContext="{Binding InputFields}"/>
             </TabItem>
 
-            <!-- Data Balancing Tab -->
-            <TabItem Header="Data Balancing">
-                <views:DataBalancingView DataContext="{Binding DataBalancing}"/>
-            </TabItem>
-
-            <!-- Feature Engineering Tab -->
-            <TabItem Header="Feature Engineering">
-                <views:FeatureEngineeringView DataContext="{Binding FeatureEngineering}"/>
+            <!-- Data Processing Pipeline Tab -->
+            <TabItem Header="Data Processing Pipeline">
+                <views:DataProcessingPipelineView DataContext="{Binding DataProcessingPipeline}"/>
             </TabItem>
 
             <!-- Training Parameters Tab (now includes AutoML) -->

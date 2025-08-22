@@ -61,8 +61,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         public DatabaseSettingsViewModel DatabaseSettings { get; private set; } = null!;
         public InputFieldsViewModel InputFields { get; private set; } = null!;
         public TrainingParametersViewModel TrainingParameters { get; private set; } = null!;
-        public DataBalancingViewModel DataBalancing { get; private set; } = null!;
-        public FeatureEngineeringViewModel FeatureEngineering { get; private set; } = null!;
+        public DataProcessingPipelineViewModel DataProcessingPipeline { get; private set; } = null!;
         public TrainingLogsViewModel TrainingLogs { get; private set; } = null!;
 
         #endregion
@@ -83,8 +82,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             DatabaseSettings = new DatabaseSettingsViewModel(_dialogService);
             InputFields = new InputFieldsViewModel(_dialogService);
             TrainingParameters = new TrainingParametersViewModel(_dialogService);
-            DataBalancing = new DataBalancingViewModel();
-            FeatureEngineering = new FeatureEngineeringViewModel();
+            DataProcessingPipeline = new DataProcessingPipelineViewModel();
             TrainingLogs = new TrainingLogsViewModel();
 
             // Subscribe to model type changes from TrainingParameters instead of GeneralSettings
@@ -297,8 +295,8 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                     return;
                 }
 
-                // Switch to logs tab (Training Logs is now at index 6)
-                SelectedTabIndex = 6;
+                // Switch to logs tab (Training Logs is at index 5)
+                SelectedTabIndex = 5;
 
                 TrainingLogs.ClearLogs();
                 IsTraining = true;
@@ -414,8 +412,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 _currentConfig.AutoML,
                 _currentConfig.ModelType,
                 _currentConfig.TargetField);
-            DataBalancing.SetConfiguration(_currentConfig.DataBalancing);
-            FeatureEngineering.SetConfiguration(_currentConfig.FeatureEngineering);
+            DataProcessingPipeline.LoadFromConfig(_currentConfig);
         }
 
         private void UpdateConfigFromUI()
@@ -433,8 +430,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             _currentConfig.ModelType = modelType;
             _currentConfig.TargetField = targetField;
 
-            _currentConfig.DataBalancing = DataBalancing.GetConfiguration();
-            _currentConfig.FeatureEngineering = FeatureEngineering.GetConfiguration();
+            DataProcessingPipeline.SaveToConfig(_currentConfig);
         }
     }
 }

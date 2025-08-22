@@ -17,6 +17,8 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         private readonly string _algorithmName;
         private readonly ModelType _modelType;
         private Type? _selectedParameterType;
+        private bool _isBooleanParameter;
+        private List<string> _booleanOptions = new List<string> { "true", "false" };
 
         public ParameterDialogViewModel(string algorithmName, ModelType modelType)
         {
@@ -83,6 +85,18 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 
         public bool IsValid => !HasError && !string.IsNullOrWhiteSpace(ParameterName) && !string.IsNullOrWhiteSpace(ParameterValueString);
 
+        public bool IsBooleanParameter
+        {
+            get => _isBooleanParameter;
+            private set => SetProperty(ref _isBooleanParameter, value);
+        }
+
+        public List<string> BooleanOptions
+        {
+            get => _booleanOptions;
+            private set => SetProperty(ref _booleanOptions, value);
+        }
+
         #endregion
 
         private void LoadAvailableParameters()
@@ -111,35 +125,51 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 var optionsType = AlgorithmRegistry.GetOptionsType(_algorithmName, _modelType);
                 if (optionsType == null) return;
 
+                // Extract actual parameter name from display text (e.g., "ParameterName (bool)" -> "ParameterName")
+                var actualParameterName = ExtractParameterName(_parameterName);
+
                 // Find the property or field
-                var property = optionsType.GetProperty(_parameterName);
-                var field = optionsType.GetField(_parameterName);
+                var property = optionsType.GetProperty(actualParameterName);
+                var field = optionsType.GetField(actualParameterName);
 
                 if (property != null)
                 {
                     _selectedParameterType = property.PropertyType;
+                    var underlyingType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+                    IsBooleanParameter = underlyingType == typeof(bool);
                     ValueHint = ParameterHelper.GetValueHint(property.PropertyType);
 
-                    // Set default value
-                    if (string.IsNullOrEmpty(ParameterValueString))
+                    // Set default value only for boolean parameters
+                    if (string.IsNullOrEmpty(ParameterValueString) && IsBooleanParameter)
                     {
-                        ParameterValueString = ParameterHelper.GetDefaultValue(property.PropertyType);
+                        ParameterValueString = "false"; // Default boolean value
+                    }
+                    else if (!IsBooleanParameter)
+                    {
+                        ParameterValueString = ""; // Leave empty for non-boolean parameters
                     }
                 }
                 else if (field != null)
                 {
                     _selectedParameterType = field.FieldType;
+                    var underlyingType = Nullable.GetUnderlyingType(field.FieldType) ?? field.FieldType;
+                    IsBooleanParameter = underlyingType == typeof(bool);
                     ValueHint = ParameterHelper.GetValueHint(field.FieldType);
 
-                    // Set default value
-                    if (string.IsNullOrEmpty(ParameterValueString))
+                    // Set default value only for boolean parameters
+                    if (string.IsNullOrEmpty(ParameterValueString) && IsBooleanParameter)
                     {
-                        ParameterValueString = ParameterHelper.GetDefaultValue(field.FieldType);
+                        ParameterValueString = "false"; // Default boolean value
+                    }
+                    else if (!IsBooleanParameter)
+                    {
+                        ParameterValueString = ""; // Leave empty for non-boolean parameters
                     }
                 }
                 else
                 {
                     _selectedParameterType = null;
+                    IsBooleanParameter = false;
                     ValueHint = "Enter a value";
                 }
             }
@@ -210,6 +240,16 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             ErrorMessage = "";
             HasError = false;
             OnPropertyChanged(nameof(IsValid));
+        }
+
+        private string ExtractParameterName(string displayText)
+        {
+            // Extract parameter name from display text like "ParameterName (bool)" -> "ParameterName"
+            if (string.IsNullOrEmpty(displayText))
+                return displayText;
+
+            var parenIndex = displayText.IndexOf(" (");
+            return parenIndex > 0 ? displayText.Substring(0, parenIndex) : displayText;
         }
     }
 }

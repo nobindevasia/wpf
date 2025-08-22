@@ -158,8 +158,8 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 
         private void InitializeCommands()
         {
-            AddParameterCommand = new RelayCommand(AddParameter);
-            RemoveParameterCommand = new RelayCommand(RemoveParameter, () => SelectedParameter != null);
+            AddParameterCommand = new RelayCommand(_ => AddParameter());
+            RemoveParameterCommand = new RelayCommand(_ => RemoveParameter(), _ => SelectedParameter != null);
         }
 
         public void SetModelType(ModelType modelType)
@@ -275,12 +275,20 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                     return;
                 }
 
-                Parameters.Add(new Models.ParameterItem
+                var parameterItem = new Models.ParameterItem
                 {
                     Name = dialogViewModel.ParameterName,
                     Value = dialogViewModel.ParameterValue,
                     DisplayText = $"{dialogViewModel.ParameterName} ({dialogViewModel.ParameterValue?.GetType().Name ?? "object"})"
-                });
+                };
+
+                // Set the expected type for proper conversions
+                if (dialogViewModel.ParameterValue != null)
+                {
+                    parameterItem.ExpectedType = dialogViewModel.ParameterValue.GetType();
+                }
+
+                Parameters.Add(parameterItem);
             }
         }
 
@@ -295,6 +303,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 Parameters.Remove(SelectedParameter);
             }
         }
+
 
         public void SetConfiguration(TrainingParameters? parameters, AutoMLConfig? autoMLConfig, ModelType modelType, string targetField)
         {
@@ -334,12 +343,20 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             {
                 foreach (var param in parameters.AlgorithmParameters)
                 {
-                    Parameters.Add(new Models.ParameterItem
+                    var parameterItem = new Models.ParameterItem
                     {
                         Name = param.Key,
                         Value = param.Value,
                         DisplayText = $"{param.Key} ({param.Value?.GetType().Name ?? "object"})"
-                    });
+                    };
+
+                    // Set the expected type for proper conversions
+                    if (param.Value != null)
+                    {
+                        parameterItem.ExpectedType = param.Value.GetType();
+                    }
+
+                    Parameters.Add(parameterItem);
                 }
             }
         }
@@ -351,7 +368,9 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             {
                 if (!string.IsNullOrEmpty(param.Name) && param.Value != null)
                 {
-                    algorithmParameters[param.Name] = param.Value;
+                    // Clean the parameter name by removing type information in parentheses
+                    var cleanName = param.Name.Split('(')[0].Trim();
+                    algorithmParameters[cleanName] = param.Value;
                 }
             }
 

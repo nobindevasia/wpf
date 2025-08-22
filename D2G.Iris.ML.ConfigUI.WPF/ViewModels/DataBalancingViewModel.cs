@@ -14,6 +14,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         private decimal _undersamplingRatio = 0.9m;
         private decimal _minorityToMajorityRatio = 0.1m;
         private string _description = "Data balancing is disabled.";
+        private bool _isEnabled = false;
 
         public DataBalancingViewModel()
         {
@@ -67,7 +68,40 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 
         public bool IsSmoteSelected => SelectedMethod == DataBalanceMethod.SMOTE;
 
-        public IEnumerable<DataBalanceMethod> AvailableMethods => Enum.GetValues<DataBalanceMethod>();
+        public bool IsEnabled
+        {
+            get => _isEnabled;
+            set
+            {
+                if (SetProperty(ref _isEnabled, value))
+                {
+                    OnPropertyChanged(nameof(AvailableMethods));
+                    // If disabled, set method to None
+                    if (!value && SelectedMethod != DataBalanceMethod.None)
+                    {
+                        SelectedMethod = DataBalanceMethod.None;
+                    }
+                }
+            }
+        }
+
+        public IEnumerable<DataBalanceMethod> AvailableMethods
+        {
+            get
+            {
+                if (!IsEnabled)
+                {
+                    // When disabled, only show "None"
+                    return new[] { DataBalanceMethod.None };
+                }
+                else
+                {
+                    // When enabled, show all methods except "None"
+                    return Enum.GetValues<DataBalanceMethod>()
+                              .Where(method => method != DataBalanceMethod.None);
+                }
+            }
+        }
 
         #endregion
 

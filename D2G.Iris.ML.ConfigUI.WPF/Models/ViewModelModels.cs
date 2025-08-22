@@ -28,6 +28,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.Models
         private object? _value;
         private string _displayText = string.Empty;
         private PropertyInfo? _property;
+        private Type? _expectedType;
 
         public string Name
         {
@@ -53,14 +54,61 @@ namespace D2G.Iris.ML.ConfigUI.WPF.Models
             set => SetProperty(ref _property, value);
         }
 
+        public Type? ExpectedType
+        {
+            get => _expectedType;
+            set => SetProperty(ref _expectedType, value);
+        }
+
         public string ValueString
         {
             get => _value?.ToString() ?? string.Empty;
             set
             {
-                _value = value;
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    _value = null;
+                }
+                else
+                {
+                    _value = ConvertToExpectedType(value);
+                }
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(Value));
+            }
+        }
+
+        private object? ConvertToExpectedType(string value)
+        {
+            if (_expectedType == null)
+                return value; // Fallback to string if type unknown
+
+            try
+            {
+                // Handle nullable types
+                var targetType = Nullable.GetUnderlyingType(_expectedType) ?? _expectedType;
+
+                if (targetType == typeof(string))
+                    return value;
+                else if (targetType == typeof(int))
+                    return int.Parse(value);
+                else if (targetType == typeof(double))
+                    return double.Parse(value);
+                else if (targetType == typeof(float))
+                    return float.Parse(value);
+                else if (targetType == typeof(decimal))
+                    return decimal.Parse(value);
+                else if (targetType == typeof(bool))
+                    return bool.Parse(value);
+                else if (targetType.IsEnum)
+                    return Enum.Parse(targetType, value, true);
+                else
+                    return Convert.ChangeType(value, targetType);
+            }
+            catch
+            {
+                // If conversion fails, return the string value
+                return value;
             }
         }
     }

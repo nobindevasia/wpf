@@ -10,6 +10,7 @@
     <UserControl.Resources>
         <converters:StringToDecimalConverter x:Key="StringToDecimalConverter"/>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:InvertedBooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter"/>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -30,6 +31,10 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="15"/>
 
+                    <!-- AutoML Section -->
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="15"/>
+
                     <!-- Test Fraction (Traditional only) -->
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="15"/>
@@ -43,12 +48,6 @@
                     <RowDefinition Height="15"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
-
-                    <!-- AutoML Section -->
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="15"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="15"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="150"/>
@@ -90,15 +89,15 @@
                            Margin="0,5"/>
 
                 <!-- Test Fraction (Only for Traditional Training) -->
-                <Label Grid.Row="8" Grid.Column="0" Content="Test Fraction:" VerticalAlignment="Center"
+                <Label Grid.Row="10" Grid.Column="0" Content="Test Fraction:" VerticalAlignment="Center"
                        Visibility="{Binding UseTraditionalTraining, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                <TextBox Grid.Row="8" Grid.Column="1" 
+                <TextBox Grid.Row="10" Grid.Column="1" 
                          Text="{Binding TestFraction, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource StringToDecimalConverter}}" 
                          VerticalAlignment="Center" Height="25" Width="120" HorizontalAlignment="Left"
                          Visibility="{Binding UseTraditionalTraining, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
                 <!-- Traditional Training Section -->
-                <GroupBox Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="2" 
+                <GroupBox Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="2" 
                           Header="Traditional Training Settings"
                           Visibility="{Binding UseTraditionalTraining, Converter={StaticResource BooleanToVisibilityConverter}}"
                           Margin="0,5">
@@ -132,11 +131,81 @@
                                   ItemsSource="{Binding Parameters}"
                                   SelectedItem="{Binding SelectedParameter}"
                                   SelectionMode="Single"
-                                  MinHeight="150">
+                                  MinHeight="150"
+                                  BorderBrush="#CCCCCC"
+                                  BorderThickness="1"
+                                  Background="White"
+                                  AlternationCount="2">
+                            <ListView.Resources>
+                                <!-- Style for alternating row colors -->
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Padding" Value="4,2"/>
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                            <Setter Property="Background" Value="#F8F8F8"/>
+                                        </Trigger>
+                                        <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                            <Setter Property="Background" Value="White"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#E3F2FD"/>
+                                            <Setter Property="Foreground" Value="#1976D2"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#F0F7FF"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                                
+                                <!-- Style for GridView headers -->
+                                <Style TargetType="GridViewColumnHeader">
+                                    <Setter Property="Background" Value="#F0F0F0"/>
+                                    <Setter Property="BorderBrush" Value="#CCCCCC"/>
+                                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                    <Setter Property="Padding" Value="6,4"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="Foreground" Value="#333333"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                </Style>
+                            </ListView.Resources>
+                            
                             <ListView.View>
-                                <GridView>
-                                    <GridViewColumn Header="Parameter Name" Width="200" DisplayMemberBinding="{Binding Name}"/>
-                                    <GridViewColumn Header="Value" Width="200" DisplayMemberBinding="{Binding ValueString}"/>
+                                <GridView AllowsColumnReorder="False">
+                                    <GridViewColumn Header="Parameter Name" Width="250">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Name}" 
+                                                          FontWeight="Medium"
+                                                          FontSize="12"
+                                                          VerticalAlignment="Center"
+                                                          Margin="4,0"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    
+                                    <GridViewColumn Header="Value" Width="200">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#F8F8F8" 
+                                                       CornerRadius="2" 
+                                                       Padding="2"
+                                                       BorderBrush="#E0E0E0"
+                                                       BorderThickness="1">
+                                                    <TextBox Text="{Binding ValueString, UpdateSourceTrigger=PropertyChanged}" 
+                                                            FontFamily="Consolas"
+                                                            FontSize="13"
+                                                            Foreground="#2E7D32"
+                                                            Background="Transparent"
+                                                            BorderThickness="0"
+                                                            VerticalAlignment="Center"
+                                                            Padding="2,0"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
                                 </GridView>
                             </ListView.View>
                         </ListView>
@@ -147,17 +216,79 @@
 
                             <Button Content="Add Parameter" 
                                     Command="{Binding AddParameterCommand}"
-                                    Width="120" Height="30" Margin="0,0,10,0"/>
+                                    Width="120" Height="32" Margin="0,0,10,0"
+                                    Background="#4CAF50"
+                                    Foreground="White"
+                                    BorderBrush="#4CAF50"
+                                    BorderThickness="1"
+                                    FontWeight="Medium"
+                                    Style="{x:Null}">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                               BorderBrush="{TemplateBinding BorderBrush}"
+                                               BorderThickness="{TemplateBinding BorderThickness}"
+                                               CornerRadius="3">
+                                            <ContentPresenter HorizontalAlignment="Center" 
+                                                            VerticalAlignment="Center"
+                                                            Margin="{TemplateBinding Padding}"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#66BB6A"/>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter Property="Background" Value="#388E3C"/>
+                                            </Trigger>
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Background" Value="#CCCCCC"/>
+                                                <Setter Property="Foreground" Value="#666666"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
 
                             <Button Content="Remove" 
                                     Command="{Binding RemoveParameterCommand}"
-                                    Width="70" Height="30"/>
+                                    Width="80" Height="32"
+                                    Background="#F44336"
+                                    Foreground="White"
+                                    BorderBrush="#F44336"
+                                    BorderThickness="1"
+                                    FontWeight="Medium"
+                                    Style="{x:Null}">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                               BorderBrush="{TemplateBinding BorderBrush}"
+                                               BorderThickness="{TemplateBinding BorderThickness}"
+                                               CornerRadius="3">
+                                            <ContentPresenter HorizontalAlignment="Center" 
+                                                            VerticalAlignment="Center"
+                                                            Margin="{TemplateBinding Padding}"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#EF5350"/>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter Property="Background" Value="#D32F2F"/>
+                                            </Trigger>
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Background" Value="#CCCCCC"/>
+                                                <Setter Property="Foreground" Value="#666666"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
                         </StackPanel>
                     </Grid>
                 </GroupBox>
 
                 <!-- AutoML Section -->
-                <GroupBox Grid.Row="18" Grid.Column="0" Grid.ColumnSpan="2" 
+                <GroupBox Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" 
                           Header="AutoML Settings"
                           Visibility="{Binding UseAutoML, Converter={StaticResource BooleanToVisibilityConverter}}"
                           Margin="0,5">

@@ -42,9 +42,30 @@
 
         <!-- Parameter Value -->
         <Label Grid.Row="2" Grid.Column="0" Content="Parameter Value:" VerticalAlignment="Center"/>
+        
+        <!-- ComboBox for Boolean Parameters -->
+        <ComboBox Grid.Row="2" Grid.Column="1" 
+                  ItemsSource="{Binding BooleanOptions}"
+                  SelectedItem="{Binding ParameterValueString, UpdateSourceTrigger=PropertyChanged}" 
+                  IsEditable="False"
+                  VerticalAlignment="Center" Height="25"
+                  Visibility="{Binding IsBooleanParameter, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+        
+        <!-- TextBox for Other Parameter Types -->
         <TextBox Grid.Row="2" Grid.Column="1" 
                  Text="{Binding ParameterValueString, UpdateSourceTrigger=PropertyChanged}" 
-                 VerticalAlignment="Center" Height="25"/>
+                 VerticalAlignment="Center" Height="25">
+            <TextBox.Style>
+                <Style TargetType="TextBox">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsBooleanParameter}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBox.Style>
+        </TextBox>
 
 
 

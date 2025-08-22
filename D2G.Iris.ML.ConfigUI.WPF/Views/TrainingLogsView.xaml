@@ -20,7 +20,7 @@
                          Background="White"
                          Foreground="DarkGreen"
                          FontFamily="Consolas"
-                         FontSize="10"
+                         FontSize="14"
                          VerticalScrollBarVisibility="Auto"
                          HorizontalScrollBarVisibility="Auto">
                 <FlowDocument>
@@ -37,7 +37,7 @@
                      Background="White"
                      Foreground="DarkGreen"
                      FontFamily="Consolas"
-                     FontSize="10"
+                     FontSize="14"
                      TextWrapping="Wrap"
                      AcceptsReturn="True"
                      VerticalScrollBarVisibility="Auto"

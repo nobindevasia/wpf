@@ -1,0 +1,189 @@
+﻿<UserControl x:Class="D2G.Iris.ML.ConfigUI.WPF.Views.DataProcessingPipelineView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:D2G.Iris.ML.ConfigUI.WPF.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="500" d:DesignWidth="900">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:StringToDecimalConverter x:Key="StringToDecimalConverter"/>
+        
+        <!-- Compact Header Style -->
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="DarkBlue"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
+        
+        <!-- Compact Label Style -->
+        <Style x:Key="CompactLabelStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Padding" Value="0,2"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        
+        <!-- Compact Input Style -->
+        <Style x:Key="CompactInputStyle" TargetType="FrameworkElement">
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Resources>
+
+    <GroupBox Header="Data Processing Pipeline" Margin="8" Padding="8">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Data Balancing Section -->
+            <GroupBox Grid.Column="0" FontWeight="Medium">
+                    <GroupBox.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox Content="Data Balancing" IsChecked="{Binding IsDataBalancingEnabled}" 
+                                      FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="Order:" FontSize="10" VerticalAlignment="Center" Margin="0,0,4,0"
+                                       IsEnabled="{Binding IsDataBalancingEnabled}"/>
+                            <ComboBox SelectedItem="{Binding DataBalancingExecutionOrder}" FontSize="10" Height="18" Width="35"
+                                      IsEnabled="{Binding IsDataBalancingEnabled}">
+                                <ComboBoxItem Content="1"/>
+                                <ComboBoxItem Content="2"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </GroupBox.Header>
+                    
+                    <Grid Margin="8" IsEnabled="{Binding IsDataBalancingEnabled}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="4"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="4"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="4"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="4"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="4"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Method -->
+                        <Label Grid.Row="0" Grid.Column="0" Content="Method:" Style="{StaticResource CompactLabelStyle}"/>
+                        <ComboBox Grid.Row="0" Grid.Column="1" 
+                                  ItemsSource="{Binding DataBalancing.AvailableMethods}"
+                                  SelectedItem="{Binding DataBalancing.SelectedMethod}"
+                                  Style="{StaticResource CompactInputStyle}"/>
+
+                        <!-- K Neighbors -->
+                        <Label Grid.Row="2" Grid.Column="0" Content="K Neighbors:" Style="{StaticResource CompactLabelStyle}"
+                               Visibility="{Binding DataBalancing.IsSmoteSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" 
+                                 Text="{Binding DataBalancing.KNeighbors, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource CompactInputStyle}" Width="60" HorizontalAlignment="Left"
+                                 Visibility="{Binding DataBalancing.IsSmoteSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                        <!-- Undersampling Ratio -->
+                        <Label Grid.Row="4" Grid.Column="0" Content="Under Ratio:" Style="{StaticResource CompactLabelStyle}"
+                               Visibility="{Binding DataBalancing.IsSmoteSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" 
+                                 Text="{Binding DataBalancing.UndersamplingRatio, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource StringToDecimalConverter}}" 
+                                 Style="{StaticResource CompactInputStyle}" Width="60" HorizontalAlignment="Left"
+                                 Visibility="{Binding DataBalancing.IsSmoteSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                        <!-- Minority Ratio -->
+                        <Label Grid.Row="6" Grid.Column="0" Content="Min Ratio:" Style="{StaticResource CompactLabelStyle}"
+                               Visibility="{Binding DataBalancing.IsSmoteSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        <TextBox Grid.Row="6" Grid.Column="1" 
+                                 Text="{Binding DataBalancing.MinorityToMajorityRatio, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource StringToDecimalConverter}}" 
+                                 Style="{StaticResource CompactInputStyle}" Width="60" HorizontalAlignment="Left"
+                                 Visibility="{Binding DataBalancing.IsSmoteSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                        <!-- Status -->
+                        <TextBlock Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" 
+                                   Text="{Binding DataBalancing.Description}" 
+                                   TextWrapping="Wrap" FontSize="10" Foreground="DarkGreen" Margin="0,4,0,0"/>
+                    </Grid>
+                </GroupBox>
+
+            <!-- Feature Engineering Section -->
+            <GroupBox Grid.Column="2" FontWeight="Medium">
+                    <GroupBox.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox Content="Feature Engineering" IsChecked="{Binding IsFeatureEngineeringEnabled}" 
+                                      FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="Order:" FontSize="10" VerticalAlignment="Center" Margin="0,0,4,0"
+                                       IsEnabled="{Binding IsFeatureEngineeringEnabled}"/>
+                            <ComboBox SelectedItem="{Binding FeatureEngineeringExecutionOrder}" FontSize="10" Height="18" Width="35"
+                                      IsEnabled="{Binding IsFeatureEngineeringEnabled}">
+                                <ComboBoxItem Content="1"/>
+                                <ComboBoxItem Content="2"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </GroupBox.Header>
+                    
+                    <Grid Margin="8" IsEnabled="{Binding IsFeatureEngineeringEnabled}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="4"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="4"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="4"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="4"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Method -->
+                        <Label Grid.Row="0" Grid.Column="0" Content="Method:" Style="{StaticResource CompactLabelStyle}"/>
+                        <ComboBox Grid.Row="0" Grid.Column="1" 
+                                  ItemsSource="{Binding FeatureEngineering.AvailableMethods}"
+                                  SelectedItem="{Binding FeatureEngineering.SelectedMethod}"
+                                  Style="{StaticResource CompactInputStyle}"/>
+
+                        <!-- PCA Components -->
+                        <Label Grid.Row="2" Grid.Column="0" Content="Components:" Style="{StaticResource CompactLabelStyle}"
+                               Visibility="{Binding FeatureEngineering.IsPcaSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" 
+                                 Text="{Binding FeatureEngineering.NumberOfComponents, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource CompactInputStyle}" Width="60" HorizontalAlignment="Left"
+                                 Visibility="{Binding FeatureEngineering.IsPcaSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                        <!-- Correlation Max Features -->
+                        <Label Grid.Row="4" Grid.Column="0" Content="Max Features:" Style="{StaticResource CompactLabelStyle}"
+                               Visibility="{Binding FeatureEngineering.IsCorrelationSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" 
+                                 Text="{Binding FeatureEngineering.MaxFeatures, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource CompactInputStyle}" Width="60" HorizontalAlignment="Left"
+                                 Visibility="{Binding FeatureEngineering.IsCorrelationSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                        <!-- Multicollinearity Threshold -->
+                        <Label Grid.Row="6" Grid.Column="0" Content="Threshold:" Style="{StaticResource CompactLabelStyle}"
+                               Visibility="{Binding FeatureEngineering.IsCorrelationSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        <TextBox Grid.Row="6" Grid.Column="1" 
+                                 Text="{Binding FeatureEngineering.MulticollinearityThreshold, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource StringToDecimalConverter}}" 
+                                 Style="{StaticResource CompactInputStyle}" Width="60" HorizontalAlignment="Left"
+                                 Visibility="{Binding FeatureEngineering.IsCorrelationSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                        <!-- Status -->
+                        <TextBlock Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" 
+                                   Text="{Binding FeatureEngineering.Description}" 
+                                   TextWrapping="Wrap" FontSize="10" Foreground="DarkGreen" Margin="0,4,0,0"/>
+                    </Grid>
+                </GroupBox>
+        </Grid>
+    </GroupBox>
+</UserControl>
