@@ -13,8 +13,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         private int _kNeighbors = 5;
         private decimal _undersamplingRatio = 0.9m;
         private decimal _minorityToMajorityRatio = 0.1m;
-        private string _description = "Data balancing is disabled.";
-        private bool _isEnabled = false;
+        private string _description = "No data balancing will be applied.";
 
         public DataBalancingViewModel()
         {
@@ -32,6 +31,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 {
                     UpdateDescription();
                     OnPropertyChanged(nameof(IsSmoteSelected));
+                    OnPropertyChanged(nameof(IsEnabled)); // Notify UI about enabled state
                 }
             }
         }
@@ -41,7 +41,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             get => _executionOrder;
             set => SetProperty(ref _executionOrder, Math.Max(1, Math.Min(2, value)));
         }
-        
+
         public int KNeighbors
         {
             get => _kNeighbors;
@@ -66,42 +66,13 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             private set => SetProperty(ref _description, value);
         }
 
+        // Simplified: IsEnabled is derived from SelectedMethod
+        public bool IsEnabled => SelectedMethod != DataBalanceMethod.None;
+
         public bool IsSmoteSelected => SelectedMethod == DataBalanceMethod.SMOTE;
 
-        public bool IsEnabled
-        {
-            get => _isEnabled;
-            set
-            {
-                if (SetProperty(ref _isEnabled, value))
-                {
-                    OnPropertyChanged(nameof(AvailableMethods));
-                    // If disabled, set method to None
-                    if (!value && SelectedMethod != DataBalanceMethod.None)
-                    {
-                        SelectedMethod = DataBalanceMethod.None;
-                    }
-                }
-            }
-        }
-
-        public IEnumerable<DataBalanceMethod> AvailableMethods
-        {
-            get
-            {
-                if (!IsEnabled)
-                {
-                    // When disabled, only show "None"
-                    return new[] { DataBalanceMethod.None };
-                }
-                else
-                {
-                    // When enabled, show all methods except "None"
-                    return Enum.GetValues<DataBalanceMethod>()
-                              .Where(method => method != DataBalanceMethod.None);
-                }
-            }
-        }
+        // Simplified: Show all methods, let UI handle the selection
+        public IEnumerable<DataBalanceMethod> AvailableMethods => Enum.GetValues<DataBalanceMethod>();
 
         #endregion
 
@@ -110,8 +81,8 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             Description = SelectedMethod switch
             {
                 DataBalanceMethod.SMOTE => "SMOTE (Synthetic Minority Oversampling Technique) generates synthetic samples for the minority class to balance the dataset.",
-                DataBalanceMethod.None => "Data balancing is disabled.",
-                _ => "Data balancing is disabled."
+                DataBalanceMethod.None => "No data balancing will be applied.",
+                _ => "No data balancing will be applied."
             };
         }
 

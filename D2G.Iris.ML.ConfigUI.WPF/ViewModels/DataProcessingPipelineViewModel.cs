@@ -9,103 +9,67 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
     {
         private readonly DataBalancingViewModel _dataBalancingViewModel;
         private readonly FeatureEngineeringViewModel _featureEngineeringViewModel;
-        
-        
-        // New properties for checkboxes and execution order
-        private bool _isDataBalancingEnabled = false;
-        private bool _isFeatureEngineeringEnabled = false;
-        private string _dataBalancingExecutionOrder = "1";
-        private string _featureEngineeringExecutionOrder = "2";
 
         public DataProcessingPipelineViewModel()
         {
             _dataBalancingViewModel = new DataBalancingViewModel();
             _featureEngineeringViewModel = new FeatureEngineeringViewModel();
 
-            // Subscribe to changes
+            // Subscribe to changes in child ViewModels
             _dataBalancingViewModel.PropertyChanged += OnChildViewModelPropertyChanged;
             _featureEngineeringViewModel.PropertyChanged += OnChildViewModelPropertyChanged;
-
-            UpdateAllStatus();
         }
 
         #region Properties
 
+        // Direct access to child ViewModels - no duplication
+        public DataBalancingViewModel DataBalancing => _dataBalancingViewModel;
+        public FeatureEngineeringViewModel FeatureEngineering => _featureEngineeringViewModel;
+
+        // Computed properties for UI binding - no storage duplication
         public bool IsDataBalancingEnabled
         {
-            get => _isDataBalancingEnabled;
+            get => _dataBalancingViewModel.IsEnabled;
             set
             {
-                if (SetProperty(ref _isDataBalancingEnabled, value))
+                if (value != _dataBalancingViewModel.IsEnabled)
                 {
-                    // Update the DataBalancingViewModel's IsEnabled state
-                    _dataBalancingViewModel.IsEnabled = value;
-                    
-                    // When checkbox changes, update the method selection
-                    if (value && _dataBalancingViewModel.SelectedMethod == DataBalanceMethod.None)
-                    {
-                        _dataBalancingViewModel.SelectedMethod = DataBalanceMethod.SMOTE;
-                    }
-                    else if (!value)
-                    {
-                        _dataBalancingViewModel.SelectedMethod = DataBalanceMethod.None;
-                    }
+                    // Toggle method selection to enable/disable
+                    _dataBalancingViewModel.SelectedMethod = value
+                        ? DataBalanceMethod.SMOTE
+                        : DataBalanceMethod.None;
                 }
             }
         }
 
         public bool IsFeatureEngineeringEnabled
         {
-            get => _isFeatureEngineeringEnabled;
+            get => _featureEngineeringViewModel.SelectedMethod != FeatureSelectionMethod.None;
             set
             {
-                if (SetProperty(ref _isFeatureEngineeringEnabled, value))
+                var currentlyEnabled = _featureEngineeringViewModel.SelectedMethod != FeatureSelectionMethod.None;
+                if (value != currentlyEnabled)
                 {
-                    // When checkbox changes, update the method selection
-                    if (value && _featureEngineeringViewModel.SelectedMethod == FeatureSelectionMethod.None)
-                    {
-                        _featureEngineeringViewModel.SelectedMethod = FeatureSelectionMethod.Correlation;
-                    }
-                    else if (!value)
-                    {
-                        _featureEngineeringViewModel.SelectedMethod = FeatureSelectionMethod.None;
-                    }
+                    // Toggle method selection to enable/disable
+                    _featureEngineeringViewModel.SelectedMethod = value
+                        ? FeatureSelectionMethod.Correlation
+                        : FeatureSelectionMethod.None;
                 }
             }
         }
 
-        public string DataBalancingExecutionOrder
+        // Direct binding to child properties - no string conversion
+        public int DataBalancingExecutionOrder
         {
-            get => _dataBalancingExecutionOrder;
-            set
-            {
-                if (SetProperty(ref _dataBalancingExecutionOrder, value))
-                {
-                    if (int.TryParse(value, out int order))
-                    {
-                        _dataBalancingViewModel.ExecutionOrder = order;
-                        }
-                }
-            }
+            get => _dataBalancingViewModel.ExecutionOrder;
+            set => _dataBalancingViewModel.ExecutionOrder = value;
         }
 
-        public string FeatureEngineeringExecutionOrder
+        public int FeatureEngineeringExecutionOrder
         {
-            get => _featureEngineeringExecutionOrder;
-            set
-            {
-                if (SetProperty(ref _featureEngineeringExecutionOrder, value))
-                {
-                    if (int.TryParse(value, out int order))
-                    {
-                        _featureEngineeringViewModel.ExecutionOrder = order;
-                        }
-                }
-            }
+            get => _featureEngineeringViewModel.ExecutionOrder;
+            set => _featureEngineeringViewModel.ExecutionOrder = value;
         }
-
-        public DataBalancingViewModel DataBalancing => _dataBalancingViewModel;
-        public FeatureEngineeringViewModel FeatureEngineering => _featureEngineeringViewModel;
 
         #endregion
 
@@ -113,42 +77,23 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 
         private void OnChildViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(DataBalancingViewModel.ExecutionOrder))
+            // Notify UI when relevant properties change
+            if (e.PropertyName == nameof(DataBalancingViewModel.IsEnabled))
             {
-                _dataBalancingExecutionOrder = _dataBalancingViewModel.ExecutionOrder.ToString();
+                OnPropertyChanged(nameof(IsDataBalancingEnabled));
+            }
+            else if (e.PropertyName == nameof(FeatureEngineeringViewModel.SelectedMethod))
+            {
+                OnPropertyChanged(nameof(IsFeatureEngineeringEnabled));
+            }
+            else if (e.PropertyName == nameof(DataBalancingViewModel.ExecutionOrder))
+            {
                 OnPropertyChanged(nameof(DataBalancingExecutionOrder));
             }
             else if (e.PropertyName == nameof(FeatureEngineeringViewModel.ExecutionOrder))
             {
-                _featureEngineeringExecutionOrder = _featureEngineeringViewModel.ExecutionOrder.ToString();
                 OnPropertyChanged(nameof(FeatureEngineeringExecutionOrder));
             }
-            else if (e.PropertyName == nameof(DataBalancingViewModel.SelectedMethod))
-            {
-                // Sync checkbox with method selection
-                bool shouldBeEnabled = _dataBalancingViewModel.SelectedMethod != DataBalanceMethod.None;
-                if (_isDataBalancingEnabled != shouldBeEnabled)
-                {
-                    _isDataBalancingEnabled = shouldBeEnabled;
-                    OnPropertyChanged(nameof(IsDataBalancingEnabled));
-                }
-            }
-            else if (e.PropertyName == nameof(FeatureEngineeringViewModel.SelectedMethod))
-            {
-                // Sync checkbox with method selection  
-                bool shouldBeEnabled = _featureEngineeringViewModel.SelectedMethod != FeatureSelectionMethod.None;
-                if (_isFeatureEngineeringEnabled != shouldBeEnabled)
-                {
-                    _isFeatureEngineeringEnabled = shouldBeEnabled;
-                    OnPropertyChanged(nameof(IsFeatureEngineeringEnabled));
-                }
-            }
-        }
-
-        private void UpdateAllStatus()
-        {
-            // Simplified - no longer need to update headers or pipeline status
-            // The UI is self-contained with checkboxes and dropdowns
         }
 
         #endregion
@@ -159,21 +104,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         {
             _dataBalancingViewModel.SetConfiguration(config.DataBalancing);
             _featureEngineeringViewModel.SetConfiguration(config.FeatureEngineering);
-            
-            // Update checkbox and dropdown states based on loaded config
-            _isDataBalancingEnabled = _dataBalancingViewModel.SelectedMethod != DataBalanceMethod.None;
-            _isFeatureEngineeringEnabled = _featureEngineeringViewModel.SelectedMethod != FeatureSelectionMethod.None;
-            _dataBalancingExecutionOrder = _dataBalancingViewModel.ExecutionOrder.ToString();
-            _featureEngineeringExecutionOrder = _featureEngineeringViewModel.ExecutionOrder.ToString();
-            
-            // Set the IsEnabled state in child view models
-            _dataBalancingViewModel.IsEnabled = _isDataBalancingEnabled;
-            
-            // Notify UI of changes
-            OnPropertyChanged(nameof(IsDataBalancingEnabled));
-            OnPropertyChanged(nameof(IsFeatureEngineeringEnabled));
-            OnPropertyChanged(nameof(DataBalancingExecutionOrder));
-            OnPropertyChanged(nameof(FeatureEngineeringExecutionOrder));
         }
 
         public void SaveToConfig(ModelConfig config)
@@ -189,5 +119,18 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         }
 
         #endregion
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _dataBalancingViewModel.PropertyChanged -= OnChildViewModelPropertyChanged;
+                _featureEngineeringViewModel.PropertyChanged -= OnChildViewModelPropertyChanged;
+
+                _dataBalancingViewModel.Dispose();
+                _featureEngineeringViewModel.Dispose();
+            }
+            base.Dispose(disposing);
+        }
     }
 }

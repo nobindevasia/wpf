@@ -3,8 +3,6 @@ using D2G.Iris.ML.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 {
@@ -15,11 +13,13 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         private int _numberOfComponents = 3;
         private int _maxFeatures = 10;
         private decimal _multicollinearityThreshold = 0.7m;
-        private string _description = "No Feature Selection will be applied. All enabled features will be used for training.";
+        private string _description = "No feature selection will be applied. All enabled features will be used for training.";
+
         public FeatureEngineeringViewModel()
         {
             UpdateDescription();
         }
+
         #region Properties
 
         public FeatureSelectionMethod SelectedMethod
@@ -29,11 +29,11 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             {
                 if (SetProperty(ref _selectedMethod, value))
                 {
-
                     UpdateDescription();
                     OnPropertyChanged(nameof(IsPcaSelected));
                     OnPropertyChanged(nameof(IsCorrelationSelected));
                     OnPropertyChanged(nameof(IsMethodSelected));
+                    OnPropertyChanged(nameof(IsEnabled)); // Notify UI about enabled state
                 }
             }
         }
@@ -68,16 +68,19 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             private set => SetProperty(ref _description, value);
         }
 
-        
+        // Simplified: IsEnabled is derived from SelectedMethod (consistent with DataBalancingViewModel)
+        public bool IsEnabled => SelectedMethod != FeatureSelectionMethod.None;
+
         public bool IsPcaSelected => SelectedMethod == FeatureSelectionMethod.PCA;
         public bool IsCorrelationSelected => SelectedMethod == FeatureSelectionMethod.Correlation;
         public bool IsMethodSelected => SelectedMethod != FeatureSelectionMethod.None;
 
+        // Simplified: Show all methods, let UI handle the selection
         public IEnumerable<FeatureSelectionMethod> AvailableMethods => Enum.GetValues<FeatureSelectionMethod>();
 
         #endregion
 
-        public void UpdateDescription()
+        private void UpdateDescription()
         {
             Description = SelectedMethod switch
             {
@@ -86,16 +89,16 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 FeatureSelectionMethod.PCA => "Principal Component Analysis (PCA) reduces dimensionality by creating new features that are linear combinations of the original features. Specify the number of principal components to retain.",
                 _ => "No feature selection will be applied. All enabled features will be used for training."
             };
+        }
 
-    }
         public void SetConfiguration(FeatureEngineeringConfig? config)
         {
-            if(config == null)
+            if (config == null)
             {
                 SelectedMethod = FeatureSelectionMethod.None;
                 ExecutionOrder = 2;
                 NumberOfComponents = 3;
-                MaxFeatures = 4;
+                MaxFeatures = 10;
                 MulticollinearityThreshold = 0.7m;
                 return;
             }
@@ -106,7 +109,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             MaxFeatures = config.MaxFeatures;
             MulticollinearityThreshold = (decimal)config.MulticollinearityThreshold;
         }
-         
+
         public FeatureEngineeringConfig GetConfiguration()
         {
             return new FeatureEngineeringConfig
@@ -118,6 +121,5 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 MulticollinearityThreshold = (double)MulticollinearityThreshold
             };
         }
-
     }
 }
