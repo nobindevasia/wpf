@@ -20,12 +20,12 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         private ModelType _currentModelType = ModelType.BinaryClassification;
         private Models.ParameterItem? _selectedParameter;
 
-        // AutoML properties
+    
         private bool _useAutoML = false;
         private int _maxExperimentTimeInSeconds = 30;
         private string _optimizingMetric = "Accuracy";
 
-        // Model configuration properties
+     
         private ModelType _modelType = ModelType.BinaryClassification;
         private string _targetField = "Label";
 
@@ -167,7 +167,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             if (_currentModelType != modelType)
             {
                 _currentModelType = modelType;
-                _modelType = modelType; // Also update the backing field
+                _modelType = modelType; 
                 UpdateAvailableAlgorithms();
                 Parameters.Clear();
                 UpdateAvailableMetrics();
@@ -282,7 +282,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                     DisplayText = $"{dialogViewModel.ParameterName} ({dialogViewModel.ParameterValue?.GetType().Name ?? "object"})"
                 };
 
-                // Set the expected type for proper conversions
                 if (dialogViewModel.ParameterValue != null)
                 {
                     parameterItem.ExpectedType = dialogViewModel.ParameterValue.GetType();
@@ -307,11 +306,9 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 
         public void SetConfiguration(TrainingParameters? parameters, AutoMLConfig? autoMLConfig, ModelType modelType, string targetField)
         {
-            // Set model configuration
             ModelType = modelType;
             TargetField = targetField ?? "Label";
 
-            // Set AutoML configuration
             if (autoMLConfig != null)
             {
                 UseAutoML = autoMLConfig.Enabled;
@@ -325,7 +322,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 OptimizingMetric = "Accuracy";
             }
 
-            // Set traditional training parameters
             if (parameters == null) return;
 
             if (!string.IsNullOrEmpty(parameters.Algorithm))
@@ -350,7 +346,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                         DisplayText = $"{param.Key} ({param.Value?.GetType().Name ?? "object"})"
                     };
 
-                    // Set the expected type for proper conversions
                     if (param.Value != null)
                     {
                         parameterItem.ExpectedType = param.Value.GetType();
@@ -368,7 +363,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             {
                 if (!string.IsNullOrEmpty(param.Name) && param.Value != null)
                 {
-                    // Clean the parameter name by removing type information in parentheses
                     var cleanName = param.Name.Split('(')[0].Trim();
                     algorithmParameters[cleanName] = param.Value;
                 }

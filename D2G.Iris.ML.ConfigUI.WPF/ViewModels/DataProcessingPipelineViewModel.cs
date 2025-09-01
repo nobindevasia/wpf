@@ -9,24 +9,22 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
     {
         private readonly DataBalancingViewModel _dataBalancingViewModel;
         private readonly FeatureEngineeringViewModel _featureEngineeringViewModel;
+        private string _intermediateResultsTableName = "";
 
         public DataProcessingPipelineViewModel()
         {
             _dataBalancingViewModel = new DataBalancingViewModel();
             _featureEngineeringViewModel = new FeatureEngineeringViewModel();
 
-            // Subscribe to changes in child ViewModels
             _dataBalancingViewModel.PropertyChanged += OnChildViewModelPropertyChanged;
             _featureEngineeringViewModel.PropertyChanged += OnChildViewModelPropertyChanged;
         }
 
         #region Properties
 
-        // Direct access to child ViewModels - no duplication
         public DataBalancingViewModel DataBalancing => _dataBalancingViewModel;
         public FeatureEngineeringViewModel FeatureEngineering => _featureEngineeringViewModel;
 
-        // Computed properties for UI binding - no storage duplication
         public bool IsDataBalancingEnabled
         {
             get => _dataBalancingViewModel.IsEnabled;
@@ -34,7 +32,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             {
                 if (value != _dataBalancingViewModel.IsEnabled)
                 {
-                    // Toggle method selection to enable/disable
                     _dataBalancingViewModel.SelectedMethod = value
                         ? DataBalanceMethod.SMOTE
                         : DataBalanceMethod.None;
@@ -50,7 +47,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 var currentlyEnabled = _featureEngineeringViewModel.SelectedMethod != FeatureSelectionMethod.None;
                 if (value != currentlyEnabled)
                 {
-                    // Toggle method selection to enable/disable
                     _featureEngineeringViewModel.SelectedMethod = value
                         ? FeatureSelectionMethod.Correlation
                         : FeatureSelectionMethod.None;
@@ -58,7 +54,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             }
         }
 
-        // Direct binding to child properties - no string conversion
         public int DataBalancingExecutionOrder
         {
             get => _dataBalancingViewModel.ExecutionOrder;
@@ -71,13 +66,19 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             set => _featureEngineeringViewModel.ExecutionOrder = value;
         }
 
+        public string IntermediateResultsTableName
+        {
+            get => _intermediateResultsTableName;
+            set => SetProperty(ref _intermediateResultsTableName, value);
+        }
+
         #endregion
 
         #region Private Methods
 
         private void OnChildViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            // Notify UI when relevant properties change
+
             if (e.PropertyName == nameof(DataBalancingViewModel.IsEnabled))
             {
                 OnPropertyChanged(nameof(IsDataBalancingEnabled));
@@ -104,18 +105,24 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         {
             _dataBalancingViewModel.SetConfiguration(config.DataBalancing);
             _featureEngineeringViewModel.SetConfiguration(config.FeatureEngineering);
+            IntermediateResultsTableName = config.Database?.OutputTableName ?? "";
         }
 
         public void SaveToConfig(ModelConfig config)
         {
             config.DataBalancing = _dataBalancingViewModel.GetConfiguration();
             config.FeatureEngineering = _featureEngineeringViewModel.GetConfiguration();
+            if (config.Database != null)
+            {
+                config.Database.OutputTableName = IntermediateResultsTableName;
+            }
         }
 
         public void ResetToDefaults()
         {
             _dataBalancingViewModel.SetConfiguration(null);
             _featureEngineeringViewModel.SetConfiguration(null);
+            IntermediateResultsTableName = "";
         }
 
         #endregion

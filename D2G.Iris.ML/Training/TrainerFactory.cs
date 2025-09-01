@@ -8,6 +8,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 using D2G.Iris.ML.Core.Enums;
 using D2G.Iris.ML.Core.Models;
+using D2G.Iris.ML.Utils;
 
 namespace D2G.Iris.ML.Training
 {
@@ -33,47 +34,50 @@ namespace D2G.Iris.ML.Training
 
         private IEstimator<ITransformer> GetBinaryClassificationTrainer(string algorithm, Dictionary<string, object> parameters)
         {
+            var optionsType = AlgorithmRegistry.GetOptionsType(algorithm, ModelType.BinaryClassification);
+            if (optionsType == null)
+                throw new ArgumentException($"Unsupported binary classification algorithm: {algorithm}");
+
             return algorithm.ToLower() switch
             {
                 "fastforest" => CreateTrainer(_mlContext.BinaryClassification.Trainers.FastForest,
-                    new FastForestBinaryTrainer.Options(), parameters),
+                    (FastForestBinaryTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "fasttree" => CreateTrainer(_mlContext.BinaryClassification.Trainers.FastTree,
-                    new FastTreeBinaryTrainer.Options(), parameters),
+                    (FastTreeBinaryTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "lightgbm" => CreateTrainer(_mlContext.BinaryClassification.Trainers.LightGbm,
-                    new LightGbmBinaryTrainer.Options(), parameters),
+                    (LightGbmBinaryTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "sdcalogisticregression" => CreateTrainer(_mlContext.BinaryClassification.Trainers.SdcaLogisticRegression,
-                    new SdcaLogisticRegressionBinaryTrainer.Options(), parameters),
+                    (SdcaLogisticRegressionBinaryTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "averagedperceptron" => CreateTrainer(_mlContext.BinaryClassification.Trainers.AveragedPerceptron,
-                    new AveragedPerceptronTrainer.Options(), parameters),
+                    (AveragedPerceptronTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
-               "linearSvm" => CreateTrainer (_mlContext.BinaryClassification.Trainers.LinearSvm,
-                    new LinearSvmTrainer.Options(), parameters),
+                "linearsvm" => CreateTrainer(_mlContext.BinaryClassification.Trainers.LinearSvm,
+                    (LinearSvmTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "ldsvm" => CreateTrainer(_mlContext.BinaryClassification.Trainers.LdSvm,
-                    new LdSvmTrainer.Options(), parameters),
+                    (LdSvmTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "sdca" => CreateTrainer(_mlContext.BinaryClassification.Trainers.SdcaNonCalibrated,
-                    new SdcaNonCalibratedBinaryTrainer.Options(), parameters),
+                    (SdcaNonCalibratedBinaryTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "sgdcalibrated" => CreateTrainer(_mlContext.BinaryClassification.Trainers.SgdCalibrated,
-                    new SgdCalibratedTrainer.Options(), parameters),
+                    (SgdCalibratedTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "symbolicsgdlogisticregression" => CreateTrainer(_mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression,
-                    new SymbolicSgdLogisticRegressionBinaryTrainer.Options(), parameters),
+                    (SymbolicSgdLogisticRegressionBinaryTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "gam" => CreateTrainer(_mlContext.BinaryClassification.Trainers.Gam,
-                    new GamBinaryTrainer.Options(), parameters),
+                    (GamBinaryTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
-                "fieldawareFactorizationMachine" => CreateTrainer(_mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine,
-                    new FieldAwareFactorizationMachineTrainer.Options(), parameters),
+                "fieldawarefactorizationmachine" => CreateTrainer(_mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine,
+                    (FieldAwareFactorizationMachineTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "lbfgslogisticregression" => CreateTrainer(_mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression,
-                    new LbfgsLogisticRegressionBinaryTrainer.Options(), parameters),
-
+                    (LbfgsLogisticRegressionBinaryTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 _ => throw new ArgumentException($"Unsupported binary classification algorithm: {algorithm}")
             };
@@ -81,16 +85,20 @@ namespace D2G.Iris.ML.Training
 
         private IEstimator<ITransformer> GetMultiClassClassificationTrainer(string algorithm, Dictionary<string, object> parameters)
         {
+            var optionsType = AlgorithmRegistry.GetOptionsType(algorithm, ModelType.MultiClassClassification);
+            if (optionsType == null)
+                throw new ArgumentException($"Unsupported multiclass classification algorithm: {algorithm}");
+
             return algorithm.ToLower() switch
             {
                 "lightgbm" => CreateTrainer(_mlContext.MulticlassClassification.Trainers.LightGbm,
-                    new LightGbmMulticlassTrainer.Options(), parameters),
+                    (LightGbmMulticlassTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "sdcamaximumentropy" => CreateTrainer(_mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy,
-                    new SdcaMaximumEntropyMulticlassTrainer.Options(), parameters),
+                    (SdcaMaximumEntropyMulticlassTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "sdca" => CreateTrainer(_mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated,
-                    new SdcaNonCalibratedMulticlassTrainer.Options(), parameters),
+                    (SdcaNonCalibratedMulticlassTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "fasttree" => _mlContext.MulticlassClassification.Trainers.OneVersusAll(
                             _mlContext.BinaryClassification.Trainers.FastTree(
@@ -109,41 +117,45 @@ namespace D2G.Iris.ML.Training
                             })),
 
                 "lbfgsmaximumentropy" => CreateTrainer(_mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy,
-                                new LbfgsMaximumEntropyMulticlassTrainer.Options(), parameters),
+                    (LbfgsMaximumEntropyMulticlassTrainer.Options)Activator.CreateInstance(optionsType), parameters),
                 _ => throw new ArgumentException($"Unsupported multiclass classification algorithm: {algorithm}")
             };
         }
 
         private IEstimator<ITransformer> GetRegressionTrainer(string algorithm, Dictionary<string, object> parameters)
         {
+            var optionsType = AlgorithmRegistry.GetOptionsType(algorithm, ModelType.Regression);
+            if (optionsType == null)
+                throw new ArgumentException($"Unsupported regression algorithm: {algorithm}");
+
             return algorithm.ToLower() switch
             {
                 "fastforest" => CreateTrainer(_mlContext.Regression.Trainers.FastForest,
-                    new FastForestRegressionTrainer.Options(), parameters),
+                    (FastForestRegressionTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "fasttree" => CreateTrainer(_mlContext.Regression.Trainers.FastTree,
-                    new FastTreeRegressionTrainer.Options(), parameters),
+                    (FastTreeRegressionTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "lightgbm" => CreateTrainer(_mlContext.Regression.Trainers.LightGbm,
-                    new LightGbmRegressionTrainer.Options(), parameters),
+                    (LightGbmRegressionTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "ols" => CreateTrainer(_mlContext.Regression.Trainers.Ols,
-                    new OlsTrainer.Options(), parameters),
+                    (OlsTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "onlinegradientdescent" => CreateTrainer(_mlContext.Regression.Trainers.OnlineGradientDescent,
-                    new OnlineGradientDescentTrainer.Options(), parameters),
+                    (OnlineGradientDescentTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "gam" => CreateTrainer(_mlContext.Regression.Trainers.Gam,
-                    new GamRegressionTrainer.Options(), parameters),
+                    (GamRegressionTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "sdca" => CreateTrainer(_mlContext.Regression.Trainers.Sdca,
-                    new SdcaRegressionTrainer.Options(), parameters),
+                    (SdcaRegressionTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "fasttreetweedie" => CreateTrainer(_mlContext.Regression.Trainers.FastTreeTweedie,
-                    new FastTreeTweedieTrainer.Options(), parameters),
+                    (FastTreeTweedieTrainer.Options)Activator.CreateInstance(optionsType), parameters),
 
                 "lbfgspoissonregression" => CreateTrainer(_mlContext.Regression.Trainers.LbfgsPoissonRegression,
-                    new LbfgsPoissonRegressionTrainer.Options(), parameters),
+                    (LbfgsPoissonRegressionTrainer.Options)Activator.CreateInstance(optionsType), parameters),
                 _ => throw new ArgumentException($"Unsupported regression algorithm: {algorithm}")
             };
         }
@@ -164,41 +176,24 @@ namespace D2G.Iris.ML.Training
             if (parameters == null) return;
 
             var type = typeof(T);
-            var members = type.GetMembers(BindingFlags.Public | BindingFlags.Instance)
-                .Where(m => m.MemberType == MemberTypes.Property || m.MemberType == MemberTypes.Field)
-                .ToDictionary(m => m.Name.ToLower(), m => m, StringComparer.OrdinalIgnoreCase);
-            
+            var properties = ParameterHelper.GetConfigurableProperties(type);
+            var fields = ParameterHelper.GetConfigurableFields(type);
+
+            var allMembers = new List<MemberInfo>();
+            allMembers.AddRange(properties.Cast<MemberInfo>());
+            allMembers.AddRange(fields.Cast<MemberInfo>());
+
+            var memberDict = allMembers.ToDictionary(m => m.Name.ToLower(), m => m, StringComparer.OrdinalIgnoreCase);
 
             foreach (var (key, value) in parameters)
             {
-                // Clean the parameter key by removing type information in parentheses
                 var cleanKey = key.Split('(')[0].Trim();
-                
-                // Direct lookup using lowercase key (since dictionary keys are already lowercase)
-                MemberInfo? member = null;
-                string? matchedName = null;
-
-                // Try direct lowercase lookup first
                 var lookupKey = cleanKey.ToLower();
-                if (members.TryGetValue(lookupKey, out member))
-                {
-                    matchedName = cleanKey;
-                }
 
-                if (member == null)
+                if (!memberDict.TryGetValue(lookupKey, out var member))
                 {
-                    // Special handling for known parameter name mappings
-                    var mappedName = MapParameterName(cleanKey, type.Name);
-                    if (mappedName != null && members.TryGetValue(mappedName.ToLower(), out member))
-                    {
-                        matchedName = mappedName;
-                    }
-                }
-
-                if (member == null)
-                {
-                    Console.WriteLine($"Warning: Parameter '{cleanKey} ({GetParameterTypeName(value)})' is not recognized on {type.Name}.");
-                    Console.WriteLine($"Available parameters: {string.Join(", ", members.Keys)}");
+                    Console.WriteLine($"Warning: Parameter '{cleanKey}' is not recognized on {type.Name}.");
+                    Console.WriteLine($"Available parameters: {string.Join(", ", memberDict.Keys)}");
                     continue;
                 }
 
@@ -214,6 +209,7 @@ namespace D2G.Iris.ML.Training
                     var convertedValue = value switch
                     {
                         JsonElement jsonElement => ConvertJsonElement(jsonElement, targetType),
+                        string stringValue => ParameterHelper.ConvertParameterValue(stringValue, targetType),
                         _ => Convert.ChangeType(value, targetType)
                     };
 
@@ -221,11 +217,11 @@ namespace D2G.Iris.ML.Training
                     {
                         case PropertyInfo prop:
                             prop.SetValue(options, convertedValue);
-                            Console.WriteLine($"Successfully set parameter '{matchedName}' = {convertedValue}");
+                            Console.WriteLine($"Successfully set parameter '{cleanKey}' = {convertedValue}");
                             break;
                         case FieldInfo field:
                             field.SetValue(options, convertedValue);
-                            Console.WriteLine($"Successfully set parameter '{matchedName}' = {convertedValue}");
+                            Console.WriteLine($"Successfully set parameter '{cleanKey}' = {convertedValue}");
                             break;
                     }
                 }
@@ -236,33 +232,6 @@ namespace D2G.Iris.ML.Training
             }
         }
 
-        private static string? MapParameterName(string parameterName, string optionsTypeName)
-        {
-            // Handle known parameter name mappings for specific trainer types
-            return optionsTypeName.ToLower() switch
-            {
-                var name when name.Contains("fasttree") => parameterName.ToLower() switch
-                {
-                    "allowemptytrees" => null, // This parameter doesn't exist in FastTreeBinaryTrainer.Options
-                    _ => null
-                },
-                _ => null
-            };
-        }
-
-        private static string GetParameterTypeName(object value)
-        {
-            return value switch
-            {
-                bool => "bool",
-                int => "int",
-                double => "double",
-                float => "float",
-                string => "string",
-                JsonElement jsonElement => jsonElement.ValueKind.ToString().ToLower(),
-                _ => value.GetType().Name.ToLower()
-            };
-        }
 
         private static object ConvertJsonElement(JsonElement element, Type targetType)
         {

@@ -31,7 +31,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 {
                     UpdateDescription();
                     OnPropertyChanged(nameof(IsSmoteSelected));
-                    OnPropertyChanged(nameof(IsEnabled)); // Notify UI about enabled state
+                    OnPropertyChanged(nameof(IsEnabled)); 
                 }
             }
         }
@@ -66,12 +66,11 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             private set => SetProperty(ref _description, value);
         }
 
-        // Simplified: IsEnabled is derived from SelectedMethod
+
         public bool IsEnabled => SelectedMethod != DataBalanceMethod.None;
 
         public bool IsSmoteSelected => SelectedMethod == DataBalanceMethod.SMOTE;
 
-        // Simplified: Show all methods, let UI handle the selection
         public IEnumerable<DataBalanceMethod> AvailableMethods => Enum.GetValues<DataBalanceMethod>();
 
         #endregion

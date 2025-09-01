@@ -125,10 +125,9 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 var optionsType = AlgorithmRegistry.GetOptionsType(_algorithmName, _modelType);
                 if (optionsType == null) return;
 
-                // Extract actual parameter name from display text (e.g., "ParameterName (bool)" -> "ParameterName")
                 var actualParameterName = ExtractParameterName(_parameterName);
 
-                // Find the property or field
+
                 var property = optionsType.GetProperty(actualParameterName);
                 var field = optionsType.GetField(actualParameterName);
 
@@ -139,14 +138,14 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                     IsBooleanParameter = underlyingType == typeof(bool);
                     ValueHint = ParameterHelper.GetValueHint(property.PropertyType);
 
-                    // Set default value only for boolean parameters
+
                     if (string.IsNullOrEmpty(ParameterValueString) && IsBooleanParameter)
                     {
-                        ParameterValueString = "false"; // Default boolean value
+                        ParameterValueString = "false"; 
                     }
                     else if (!IsBooleanParameter)
                     {
-                        ParameterValueString = ""; // Leave empty for non-boolean parameters
+                        ParameterValueString = "";
                     }
                 }
                 else if (field != null)
@@ -156,14 +155,14 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                     IsBooleanParameter = underlyingType == typeof(bool);
                     ValueHint = ParameterHelper.GetValueHint(field.FieldType);
 
-                    // Set default value only for boolean parameters
+           
                     if (string.IsNullOrEmpty(ParameterValueString) && IsBooleanParameter)
                     {
-                        ParameterValueString = "false"; // Default boolean value
+                        ParameterValueString = "false"; 
                     }
                     else if (!IsBooleanParameter)
                     {
-                        ParameterValueString = ""; // Leave empty for non-boolean parameters
+                        ParameterValueString = ""; 
                     }
                 }
                 else
@@ -191,7 +190,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 
             if (_selectedParameterType == null)
             {
-                // Fallback to basic parsing
+      
                 TryBasicParsing();
                 return;
             }
@@ -203,7 +202,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             catch (Exception ex)
             {
                 SetError($"Invalid value for {ParameterHelper.GetFriendlyTypeName(_selectedParameterType)}: {ex.Message}");
-                // Still try basic parsing as fallback
+           
                 TryBasicParsing();
             }
         }
@@ -212,7 +211,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         {
             try
             {
-                // Try to parse the value based on common types
+               
                 if (int.TryParse(ParameterValueString, out int intValue))
                     ParameterValue = intValue;
                 else if (double.TryParse(ParameterValueString, out double doubleValue))
@@ -244,7 +243,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 
         private string ExtractParameterName(string displayText)
         {
-            // Extract parameter name from display text like "ParameterName (bool)" -> "ParameterName"
+         
             if (string.IsNullOrEmpty(displayText))
                 return displayText;
 

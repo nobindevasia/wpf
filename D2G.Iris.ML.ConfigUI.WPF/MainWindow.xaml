@@ -47,7 +47,7 @@
             </TabItem>
 
             <!-- Database Tab -->
-            <TabItem Header="Database">
+            <TabItem Header="Database Settings">
                 <views:DatabaseSettingsView DataContext="{Binding DatabaseSettings}"/>
             </TabItem>
 

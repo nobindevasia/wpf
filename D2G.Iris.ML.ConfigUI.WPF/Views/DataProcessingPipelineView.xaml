@@ -35,11 +35,18 @@
 
     <GroupBox Header="Data Processing Pipeline" Margin="8" Padding="8">
         <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="8"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
             <!-- Data Balancing Section -->
             <GroupBox Grid.Column="0" FontWeight="Medium">
@@ -184,6 +191,23 @@
                                    TextWrapping="Wrap" FontSize="10" Foreground="DarkGreen" Margin="0,4,0,0"/>
                     </Grid>
                 </GroupBox>
+            </Grid>
+            
+            <!-- Intermediate Results Table Section -->
+            <Grid Grid.Row="2" Margin="8,8,8,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="170"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <Label Grid.Column="0" Content="Intermediate Results Table:" 
+                       FontSize="12" Padding="0,2" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="2" 
+                         Text="{Binding IntermediateResultsTableName, UpdateSourceTrigger=PropertyChanged}" 
+                         Style="{StaticResource CompactInputStyle}" 
+                         ToolTip="Name of the table to store intermediate processing results"/>
+            </Grid>
         </Grid>
     </GroupBox>
 </UserControl>

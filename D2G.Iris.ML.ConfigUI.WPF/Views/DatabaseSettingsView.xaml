@@ -18,8 +18,6 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="15"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="15"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="150"/>
@@ -57,14 +55,8 @@
                      AcceptsReturn="True" TextWrapping="Wrap" 
                      VerticalScrollBarVisibility="Auto" Height="60" Margin="0,0,10,0"/>
 
-            <!-- Output Table Name -->
-            <Label Grid.Row="8" Grid.Column="0" Content="Output Table Name:" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="8" Grid.Column="1" 
-                     Text="{Binding OutputTableName, UpdateSourceTrigger=PropertyChanged}" 
-                     VerticalAlignment="Center" Height="25" Margin="0,0,10,0"/>
-
             <!-- Test Connection Button -->
-            <Button Grid.Row="10" Grid.Column="1" 
+            <Button Grid.Row="8" Grid.Column="1" 
                     Content="Test Connection"
                     Command="{Binding TestConnectionCommand}"
                     HorizontalAlignment="Left"

@@ -98,11 +98,9 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         {
             if (config == null) return;
 
-            // Basic info
             Author = config.Author ?? Environment.UserName;
             Description = config.Description ?? "New Model Configuration";
 
-            // Extended properties (if they exist in ModelConfig)
             if (config.ExtendedProperties != null)
             {
                 if (config.ExtendedProperties.TryGetValue("ProjectName", out var projectName))
@@ -126,11 +124,9 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         {
             if (config == null) return;
 
-            // Basic properties
             config.Author = Author;
             config.Description = Description;
 
-            // Extended properties
             config.ExtendedProperties ??= new Dictionary<string, object>();
 
             config.ExtendedProperties["ProjectName"] = ProjectName;

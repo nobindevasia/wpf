@@ -33,7 +33,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                     OnPropertyChanged(nameof(IsPcaSelected));
                     OnPropertyChanged(nameof(IsCorrelationSelected));
                     OnPropertyChanged(nameof(IsMethodSelected));
-                    OnPropertyChanged(nameof(IsEnabled)); // Notify UI about enabled state
+                    OnPropertyChanged(nameof(IsEnabled)); 
                 }
             }
         }
@@ -68,14 +68,13 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             private set => SetProperty(ref _description, value);
         }
 
-        // Simplified: IsEnabled is derived from SelectedMethod (consistent with DataBalancingViewModel)
+
         public bool IsEnabled => SelectedMethod != FeatureSelectionMethod.None;
 
         public bool IsPcaSelected => SelectedMethod == FeatureSelectionMethod.PCA;
         public bool IsCorrelationSelected => SelectedMethod == FeatureSelectionMethod.Correlation;
         public bool IsMethodSelected => SelectedMethod != FeatureSelectionMethod.None;
 
-        // Simplified: Show all methods, let UI handle the selection
         public IEnumerable<FeatureSelectionMethod> AvailableMethods => Enum.GetValues<FeatureSelectionMethod>();
 
         #endregion

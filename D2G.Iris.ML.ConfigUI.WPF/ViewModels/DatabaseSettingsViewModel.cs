@@ -14,7 +14,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         private string _server = "localhost";
         private string _database = "IrisData";
         private string _tableName = "DataTable";
-        private string _outputTableName = "";
         private string _whereClause = "";
         private bool _isExplorerVisible = false;
         private bool _isLoadingTables = false;
@@ -49,12 +48,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         {
             get => _tableName;
             set => SetProperty(ref _tableName, value);
-        }
-
-        public string OutputTableName
-        {
-            get => _outputTableName;
-            set => SetProperty(ref _outputTableName, value);
         }
 
         public string WhereClause
@@ -232,7 +225,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             Server = config.Server ?? "localhost";
             Database = config.Database ?? "IrisData";
             TableName = config.TableName ?? "DataTable";
-            OutputTableName = config.OutputTableName ?? "";
             WhereClause = config.WhereClause ?? "";
         }
 
@@ -243,7 +235,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 Server = Server,
                 Database = Database,
                 TableName = TableName,
-                OutputTableName = OutputTableName,
+                OutputTableName = "",
                 WhereClause = WhereClause
             };
         }
