@@ -295,7 +295,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                     return;
                 }
 
-                // Switch to logs tab (Training Logs is at index 5)
                 SelectedTabIndex = 5;
 
                 TrainingLogs.ClearLogs();
@@ -406,7 +405,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             GeneralSettings.SetConfiguration(_currentConfig);
             DatabaseSettings.SetConfiguration(_currentConfig.Database);
             InputFields.SetConfiguration(_currentConfig.InputFields);
-            // Pass model type and target field to TrainingParameters
+
             TrainingParameters.SetConfiguration(
                 _currentConfig.TrainingParameters,
                 _currentConfig.AutoML,
@@ -423,7 +422,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             _currentConfig.Database = DatabaseSettings.GetConfiguration();
             _currentConfig.InputFields = InputFields.GetConfiguration();
 
-            // Get all configuration from TrainingParameters including model type and target field
             var (trainingParams, autoMLConfig, modelType, targetField) = TrainingParameters.GetConfiguration();
             _currentConfig.TrainingParameters = trainingParams;
             _currentConfig.AutoML = autoMLConfig;

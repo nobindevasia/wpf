@@ -27,6 +27,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         {
             OnPropertyChanged(propertyName);
         }
+
         protected virtual void Dispose(bool disposing)
         {
         }

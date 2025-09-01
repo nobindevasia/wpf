@@ -14,12 +14,11 @@ namespace D2G.Iris.ML.ConfigUI.WPF
         {
             var services = new ServiceCollection();
 
-            // Register Services
             services.AddSingleton<IConfigurationService, ConfigurationService>();
             services.AddSingleton<IDatabaseSchemaLoader, DatabaseSchemaLoader>();
             services.AddSingleton<IDialogService, DialogService>();
 
-            // Register ViewModels
+
             services.AddTransient<MainWindowViewModel>();
             services.AddTransient<GeneralSettingsViewModel>();
             services.AddTransient<DatabaseSettingsViewModel>();
@@ -30,10 +29,9 @@ namespace D2G.Iris.ML.ConfigUI.WPF
             services.AddTransient<AutoMLSettingsViewModel>();
             services.AddTransient<TrainingLogsViewModel>();
 
-            // Build the service provider
             _serviceProvider = services.BuildServiceProvider();
 
-            // Create and show the main window
+
             var mainWindowViewModel = _serviceProvider.GetRequiredService<MainWindowViewModel>();
             var mainWindow = new MainWindow(mainWindowViewModel);
 
