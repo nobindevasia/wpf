@@ -16,6 +16,9 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             _dataBalancingViewModel = new DataBalancingViewModel();
             _featureEngineeringViewModel = new FeatureEngineeringViewModel();
 
+            _dataBalancingViewModel.ExecutionOrder = 1;
+            _featureEngineeringViewModel.ExecutionOrder = 2;
+
             _dataBalancingViewModel.PropertyChanged += OnChildViewModelPropertyChanged;
             _featureEngineeringViewModel.PropertyChanged += OnChildViewModelPropertyChanged;
         }
@@ -66,6 +69,30 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             set => _featureEngineeringViewModel.ExecutionOrder = value;
         }
 
+        public string DataBalancingExecutionOrderString
+        {
+            get => _dataBalancingViewModel.ExecutionOrder.ToString();
+            set
+            {
+                if (int.TryParse(value, out int order))
+                {
+                    _dataBalancingViewModel.ExecutionOrder = order;
+                }
+            }
+        }
+
+        public string FeatureEngineeringExecutionOrderString
+        {
+            get => _featureEngineeringViewModel.ExecutionOrder.ToString();
+            set
+            {
+                if (int.TryParse(value, out int order))
+                {
+                    _featureEngineeringViewModel.ExecutionOrder = order;
+                }
+            }
+        }
+
         public string IntermediateResultsTableName
         {
             get => _intermediateResultsTableName;
@@ -90,12 +117,15 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             else if (e.PropertyName == nameof(DataBalancingViewModel.ExecutionOrder))
             {
                 OnPropertyChanged(nameof(DataBalancingExecutionOrder));
+                OnPropertyChanged(nameof(DataBalancingExecutionOrderString));
             }
             else if (e.PropertyName == nameof(FeatureEngineeringViewModel.ExecutionOrder))
             {
                 OnPropertyChanged(nameof(FeatureEngineeringExecutionOrder));
+                OnPropertyChanged(nameof(FeatureEngineeringExecutionOrderString));
             }
         }
+
 
         #endregion
 

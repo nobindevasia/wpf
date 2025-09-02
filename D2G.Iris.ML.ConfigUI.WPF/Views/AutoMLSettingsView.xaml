@@ -24,14 +24,14 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Enable AutoML -->
+            
             <CheckBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                       Content="Enable AutoML"
                       IsChecked="{Binding IsEnabled}"
                       FontWeight="Bold"
                       VerticalAlignment="Center"/>
 
-            <!-- Max Experiment Time -->
+            
             <Label Grid.Row="2" Grid.Column="0" Content="Max Experiment Time:" VerticalAlignment="Center"
                    IsEnabled="{Binding IsEnabled}"/>
             <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
@@ -42,7 +42,7 @@
                        IsEnabled="{Binding IsEnabled}"/>
             </StackPanel>
 
-            <!-- Optimizing Metric -->
+            
             <Label Grid.Row="4" Grid.Column="0" Content="Optimizing Metric:" VerticalAlignment="Center"
                    IsEnabled="{Binding IsEnabled}"/>
             <ComboBox Grid.Row="4" Grid.Column="1" 
@@ -51,7 +51,7 @@
                       VerticalAlignment="Center" Height="25" Width="200" HorizontalAlignment="Left"
                       IsEnabled="{Binding IsEnabled}"/>
 
-            <!-- Description -->
+            
             <TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" 
                        Text="{Binding Description}" 
                        TextWrapping="Wrap" 

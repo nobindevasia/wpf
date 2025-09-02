@@ -23,19 +23,19 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Field Name -->
+        
         <Label Grid.Row="0" Grid.Column="0" Content="Field Name:" VerticalAlignment="Center"/>
         <TextBox Grid.Row="0" Grid.Column="1" 
                  Text="{Binding FieldName, UpdateSourceTrigger=PropertyChanged}" 
                  VerticalAlignment="Center" Height="25"/>
 
-        <!-- Enabled -->
+        
         <CheckBox Grid.Row="2" Grid.Column="1" 
                   Content="Enabled"
                   IsChecked="{Binding IsEnabled}"
                   VerticalAlignment="Center"/>
 
-        <!-- Buttons -->
+        
         <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" 
                     Orientation="Horizontal" HorizontalAlignment="Right">
 

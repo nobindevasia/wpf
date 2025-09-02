@@ -20,7 +20,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header with Connection Info and Refresh Button -->
+        
         <Border Grid.Row="0" Background="LightBlue" Padding="10" CornerRadius="5">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Server: " FontWeight="Bold" VerticalAlignment="Center"/>
@@ -39,7 +39,7 @@
             </StackPanel>
         </Border>
 
-        <!-- Tables List -->
+        
         <DataGrid Grid.Row="2" 
                   ItemsSource="{Binding Tables}"
                   SelectedItem="{Binding SelectedTable}"
@@ -67,7 +67,7 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Selected Table Info -->
+        
         <Border Grid.Row="4" Background="LightGreen" Padding="10" CornerRadius="5"
                 Visibility="{Binding SelectedTable, Converter={StaticResource NotNullToVisibilityConverter}}">
             <StackPanel Orientation="Horizontal">
@@ -79,7 +79,7 @@
             </StackPanel>
         </Border>
 
-        <!-- Action Buttons -->
+        
         <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Select Table" 
                     Command="{Binding SelectTableCommand}"

@@ -81,11 +81,10 @@ namespace D2G.Iris.ML.ConfigUI.WPF.Models
         private object? ConvertToExpectedType(string value)
         {
             if (_expectedType == null)
-                return value; // Fallback to string if type unknown
+                return value;
 
             try
             {
-                // Handle nullable types
                 var targetType = Nullable.GetUnderlyingType(_expectedType) ?? _expectedType;
 
                 if (targetType == typeof(string))
@@ -107,7 +106,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.Models
             }
             catch
             {
-                // If conversion fails, return the string value
                 return value;
             }
         }

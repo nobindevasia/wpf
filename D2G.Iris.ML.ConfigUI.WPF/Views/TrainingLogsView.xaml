@@ -13,7 +13,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Log Display -->
+            
             <RichTextBox Grid.Row="0" 
                          x:Name="LogTextBox"
                          IsReadOnly="True"
@@ -30,20 +30,9 @@
                 </FlowDocument>
             </RichTextBox>
 
-            <!-- Alternative: Use TextBox for simpler binding -->
-            <!--<TextBox Grid.Row="0" 
-                     Text="{Binding LogText, Mode=OneWay}"
-                     IsReadOnly="True"
-                     Background="White"
-                     Foreground="DarkGreen"
-                     FontFamily="Consolas"
-                     FontSize="14"
-                     TextWrapping="Wrap"
-                     AcceptsReturn="True"
-                     VerticalScrollBarVisibility="Auto"
-                     HorizontalScrollBarVisibility="Auto"/>-->
+            
 
-            <!-- Button Panel -->
+            
             <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
 
                 <Button Content="Clear Logs" 

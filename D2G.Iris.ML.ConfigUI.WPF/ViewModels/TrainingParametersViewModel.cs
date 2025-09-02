@@ -68,7 +68,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 : "Traditional training uses the specified algorithm with configured parameters. You can specify the test fraction for evaluation.";
         }
 
-        // Traditional Training Properties
         public string SelectedAlgorithm
         {
             get => _selectedAlgorithm;
@@ -97,7 +96,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             set => SetProperty(ref _selectedParameter, value);
         }
 
-        // AutoML Properties
         public int MaxExperimentTimeInSeconds
         {
             get => _maxExperimentTimeInSeconds;
@@ -112,7 +110,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 
         public ObservableCollection<string> AvailableMetrics { get; } = new();
 
-        // Model Configuration Properties
         public ModelType ModelType
         {
             get => _modelType;
@@ -190,17 +187,17 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 case ModelType.BinaryClassification:
                     foreach (var metric in new[] { "Accuracy", "AUC", "F1Score" })
                         AvailableMetrics.Add(metric);
-                    OptimizingMetric = "Accuracy"; // Default for binary classification
+                    OptimizingMetric = "Accuracy";
                     break;
                 case ModelType.MultiClassClassification:
                     foreach (var metric in new[] { "MicroAccuracy", "MacroAccuracy" })
                         AvailableMetrics.Add(metric);
-                    OptimizingMetric = "MicroAccuracy"; // Default for multi-class classification
+                    OptimizingMetric = "MicroAccuracy";
                     break;
                 case ModelType.Regression:
                     foreach (var metric in new[] { "RSquared", "MeanAbsoluteError", "RootMeanSquaredError" })
                         AvailableMetrics.Add(metric);
-                    OptimizingMetric = "RSquared"; // Default for regression
+                    OptimizingMetric = "RSquared";
                     break;
             }
         }

@@ -24,7 +24,6 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Menu Bar -->
         <Menu Grid.Row="0" IsEnabled="{Binding IsTraining, Converter={StaticResource InverseBooleanConverter}}">
             <MenuItem Header="_File">
                 <MenuItem Header="_New" Command="{Binding NewConfigCommand}" InputGestureText="Ctrl+N"/>
@@ -36,43 +35,39 @@
             </MenuItem>
         </Menu>
 
-        <!-- Main Content -->
         <TabControl Grid.Row="1" 
                     SelectedIndex="{Binding SelectedTabIndex}"
                     IsEnabled="{Binding IsTraining, Converter={StaticResource InverseBooleanConverter}}">
 
-            <!-- General Settings Tab -->
             <TabItem Header="General Settings">
                 <views:GeneralSettingsView DataContext="{Binding GeneralSettings}"/>
             </TabItem>
 
-            <!-- Database Tab -->
             <TabItem Header="Database Settings">
                 <views:DatabaseSettingsView DataContext="{Binding DatabaseSettings}"/>
             </TabItem>
 
-            <!-- Input Fields Tab -->
             <TabItem Header="Input Fields">
                 <views:InputFieldsView DataContext="{Binding InputFields}"/>
             </TabItem>
 
-            <!-- Data Processing Pipeline Tab -->
+            <TabItem Header="Exploratory Data Analysis">
+                <views:ExploratoryDataAnalysisView DataContext="{Binding ExploratoryDataAnalysis}"/>
+            </TabItem>
+
             <TabItem Header="Data Processing Pipeline">
                 <views:DataProcessingPipelineView DataContext="{Binding DataProcessingPipeline}"/>
             </TabItem>
 
-            <!-- Training Parameters Tab (now includes AutoML) -->
             <TabItem Header="Training Parameters">
                 <views:TrainingParametersView DataContext="{Binding TrainingParameters}"/>
             </TabItem>
 
-            <!-- Training Logs Tab -->
             <TabItem Header="Training Logs">
                 <views:TrainingLogsView DataContext="{Binding TrainingLogs}"/>
             </TabItem>
         </TabControl>
 
-        <!-- Training Button -->
         <Button Grid.Row="2" 
                 Command="{Binding LaunchTrainingCommand}"
                 FontWeight="Bold"
@@ -95,7 +90,6 @@
             </Button.Style>
         </Button>
 
-        <!-- Status Bar -->
         <StatusBar Grid.Row="3">
             <StatusBarItem>
                 <StatusBarItem.Style>

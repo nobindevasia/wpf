@@ -101,17 +101,17 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 case ModelType.BinaryClassification:
                     foreach (var metric in new[] { "Accuracy", "AUC", "F1Score" })
                         AvailableMetrics.Add(metric);
-                    OptimizingMetric = "Accuracy"; // Default for binary classification
+                    OptimizingMetric = "Accuracy";
                     break;
                 case ModelType.MultiClassClassification:
                     foreach (var metric in new[] { "MicroAccuracy", "MacroAccuracy" })
                         AvailableMetrics.Add(metric);
-                    OptimizingMetric = "MicroAccuracy"; // Default for multi-class classification
+                    OptimizingMetric = "MicroAccuracy";
                     break;
                 case ModelType.Regression:
                     foreach (var metric in new[] { "RSquared", "MeanAbsoluteError", "RootMeanSquaredError" })
                         AvailableMetrics.Add(metric);
-                    OptimizingMetric = "RSquared"; // Default for regression
+                    OptimizingMetric = "RSquared";
                     break;
             }
         }

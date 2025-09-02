@@ -60,6 +60,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         public GeneralSettingsViewModel GeneralSettings { get; private set; } = null!;
         public DatabaseSettingsViewModel DatabaseSettings { get; private set; } = null!;
         public InputFieldsViewModel InputFields { get; private set; } = null!;
+        public ExploratoryDataAnalysisViewModel ExploratoryDataAnalysis { get; private set; } = null!;
         public TrainingParametersViewModel TrainingParameters { get; private set; } = null!;
         public DataProcessingPipelineViewModel DataProcessingPipeline { get; private set; } = null!;
         public TrainingLogsViewModel TrainingLogs { get; private set; } = null!;
@@ -81,15 +82,15 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             GeneralSettings = new GeneralSettingsViewModel();
             DatabaseSettings = new DatabaseSettingsViewModel(_dialogService);
             InputFields = new InputFieldsViewModel(_dialogService);
+            ExploratoryDataAnalysis = new ExploratoryDataAnalysisViewModel(_dialogService);
             TrainingParameters = new TrainingParametersViewModel(_dialogService);
             DataProcessingPipeline = new DataProcessingPipelineViewModel();
             TrainingLogs = new TrainingLogsViewModel();
 
-            // Subscribe to model type changes from TrainingParameters instead of GeneralSettings
             TrainingParameters.ModelTypeChanged += OnModelTypeChanged;
 
-            // Wire up dependencies - now gets target field from TrainingParameters
             InputFields.SetDependencies(() => DatabaseSettings.GetConfiguration(), () => TrainingParameters.TargetField);
+            ExploratoryDataAnalysis.SetDependencies(() => DatabaseSettings.GetConfiguration(), () => InputFields.GetConfiguration());
         }
 
         private void InitializeCommands()
@@ -103,8 +104,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 
         private void OnModelTypeChanged(ModelType newModelType)
         {
-            // The TrainingParameters already handles its own model type changes
-            // This is here for any additional logic that might be needed
         }
 
         private void LoadExistingConfigOnStartup()
@@ -295,7 +294,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                     return;
                 }
 
-                SelectedTabIndex = 5;
+                SelectedTabIndex = 6;
 
                 TrainingLogs.ClearLogs();
                 IsTraining = true;

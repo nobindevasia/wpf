@@ -25,19 +25,19 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Server -->
+            
             <Label Grid.Row="0" Grid.Column="0" Content="Server:" VerticalAlignment="Center"/>
             <TextBox Grid.Row="0" Grid.Column="1" 
                      Text="{Binding Server, UpdateSourceTrigger=PropertyChanged}" 
                      VerticalAlignment="Center" Height="25" Margin="0,0,10,0"/>
 
-            <!-- Database -->
+            
             <Label Grid.Row="2" Grid.Column="0" Content="Database:" VerticalAlignment="Center"/>
             <TextBox Grid.Row="2" Grid.Column="1" 
                      Text="{Binding Database, UpdateSourceTrigger=PropertyChanged}" 
                      VerticalAlignment="Center" Height="25" Margin="0,0,10,0"/>
 
-            <!-- Table Name -->
+            
             <Label Grid.Row="4" Grid.Column="0" Content="Table Name:" VerticalAlignment="Center"/>
             <TextBox Grid.Row="4" Grid.Column="1" 
                      Text="{Binding TableName, UpdateSourceTrigger=PropertyChanged}" 
@@ -48,14 +48,14 @@
                     Width="80" Height="25"
                     Background="LightGray"/>
 
-            <!-- Where Clause -->
+            
             <Label Grid.Row="6" Grid.Column="0" Content="Where Clause:" VerticalAlignment="Top" Margin="0,5,0,0"/>
             <TextBox Grid.Row="6" Grid.Column="1" 
                      Text="{Binding WhereClause, UpdateSourceTrigger=PropertyChanged}" 
                      AcceptsReturn="True" TextWrapping="Wrap" 
                      VerticalScrollBarVisibility="Auto" Height="60" Margin="0,0,10,0"/>
 
-            <!-- Test Connection Button -->
+            
             <Button Grid.Row="8" Grid.Column="1" 
                     Content="Test Connection"
                     Command="{Binding TestConnectionCommand}"

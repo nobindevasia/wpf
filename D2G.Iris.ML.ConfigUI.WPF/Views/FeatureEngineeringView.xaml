@@ -33,14 +33,14 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Method -->
+            
             <Label Grid.Row="0" Grid.Column="0" Content="Method:" VerticalAlignment="Center"/>
             <ComboBox Grid.Row="0" Grid.Column="1" 
                       ItemsSource="{Binding AvailableMethods}"
                       SelectedItem="{Binding SelectedMethod}"
                       VerticalAlignment="Center" Height="25" Width="200" HorizontalAlignment="Left"/>
 
-            <!-- Execution Order -->
+            
             <Label Grid.Row="2" Grid.Column="0" Content="Execution Order:" VerticalAlignment="Center"
                    IsEnabled="{Binding IsMethodSelected}"/>
             <TextBox Grid.Row="2" Grid.Column="1" 
@@ -48,7 +48,7 @@
                      VerticalAlignment="Center" Height="25" Width="80" HorizontalAlignment="Left"
                      IsEnabled="{Binding IsMethodSelected}"/>
 
-            <!-- Number of Components (PCA only) -->
+            
             <Label Grid.Row="4" Grid.Column="0" Content="Number of Components:" VerticalAlignment="Center"
                    Visibility="{Binding IsPcaSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             <TextBox Grid.Row="4" Grid.Column="1" 
@@ -56,7 +56,7 @@
                      VerticalAlignment="Center" Height="25" Width="80" HorizontalAlignment="Left"
                      Visibility="{Binding IsPcaSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
-            <!-- Max Features (Correlation only) -->
+            
             <Label Grid.Row="6" Grid.Column="0" Content="Max Features:" VerticalAlignment="Center"
                    Visibility="{Binding IsCorrelationSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             <TextBox Grid.Row="6" Grid.Column="1" 
@@ -64,7 +64,7 @@
                      VerticalAlignment="Center" Height="25" Width="80" HorizontalAlignment="Left"
                      Visibility="{Binding IsCorrelationSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
-            <!-- Multicollinearity Threshold (Correlation only) -->
+            
             <Label Grid.Row="8" Grid.Column="0" Content="Multicollinearity Threshold:" VerticalAlignment="Center"
                    Visibility="{Binding IsCorrelationSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             <TextBox Grid.Row="8" Grid.Column="1" 
@@ -72,7 +72,7 @@
                      VerticalAlignment="Center" Height="25" Width="80" HorizontalAlignment="Left"
                      Visibility="{Binding IsCorrelationSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
-            <!-- Description -->
+            
             <TextBlock Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="2" 
                        Text="{Binding Description}" 
                        TextWrapping="Wrap" 

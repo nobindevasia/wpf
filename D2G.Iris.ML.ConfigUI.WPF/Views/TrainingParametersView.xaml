@@ -17,29 +17,29 @@
         <GroupBox Header="Training Parameters" Margin="10">
             <Grid Margin="15">
                 <Grid.RowDefinitions>
-                    <!-- Model Configuration -->
+                    
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="15"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="15"/>
 
-                    <!-- Training Mode Selection -->
+                    
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="15"/>
 
-                    <!-- Description -->
+                    
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="15"/>
 
-                    <!-- AutoML Section -->
+                    
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="15"/>
 
-                    <!-- Test Fraction (Traditional only) -->
+                    
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="15"/>
 
-                    <!-- Traditional Training Section -->
+                    
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="15"/>
                     <RowDefinition Height="Auto"/>
@@ -54,20 +54,20 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Model Type -->
+                
                 <Label Grid.Row="0" Grid.Column="0" Content="Model Type:" VerticalAlignment="Center" FontWeight="Bold"/>
                 <ComboBox Grid.Row="0" Grid.Column="1" 
                           ItemsSource="{Binding AvailableModelTypes}"
                           SelectedItem="{Binding ModelType}"
                           VerticalAlignment="Center" Height="25"/>
 
-                <!-- Target Field -->
+                
                 <Label Grid.Row="2" Grid.Column="0" Content="Target Field:" VerticalAlignment="Center" FontWeight="Bold"/>
                 <TextBox Grid.Row="2" Grid.Column="1" 
                          Text="{Binding TargetField, UpdateSourceTrigger=PropertyChanged}" 
                          VerticalAlignment="Center" Height="25"/>
 
-                <!-- Training Mode Selection -->
+                
                 <Label Grid.Row="4" Grid.Column="0" Content="Training Mode:" VerticalAlignment="Center" FontWeight="Bold"/>
                 <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal">
                     <RadioButton Content="Traditional Training" 
@@ -80,7 +80,7 @@
                                  VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Description -->
+                
                 <TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" 
                            Text="{Binding TrainingModeDescription}" 
                            TextWrapping="Wrap" 
@@ -88,7 +88,7 @@
                            FontStyle="Italic"
                            Margin="0,5"/>
 
-                <!-- Test Fraction (Only for Traditional Training) -->
+                
                 <Label Grid.Row="10" Grid.Column="0" Content="Test Fraction:" VerticalAlignment="Center"
                        Visibility="{Binding UseTraditionalTraining, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                 <TextBox Grid.Row="10" Grid.Column="1" 
@@ -96,7 +96,7 @@
                          VerticalAlignment="Center" Height="25" Width="120" HorizontalAlignment="Left"
                          Visibility="{Binding UseTraditionalTraining, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
-                <!-- Traditional Training Section -->
+                
                 <GroupBox Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="2" 
                           Header="Traditional Training Settings"
                           Visibility="{Binding UseTraditionalTraining, Converter={StaticResource BooleanToVisibilityConverter}}"
@@ -115,7 +115,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Algorithm -->
+                        
                         <Label Grid.Row="0" Grid.Column="0" Content="Algorithm:" VerticalAlignment="Center"/>
                         <ComboBox Grid.Row="0" Grid.Column="1" 
                                   ItemsSource="{Binding AvailableAlgorithms}"
@@ -123,10 +123,10 @@
                                   VerticalAlignment="Center" Height="25"
                                   ToolTip="{Binding AlgorithmTooltip}"/>
 
-                        <!-- Algorithm Parameters Label -->
+                        
                         <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Content="Algorithm Parameters:" FontWeight="Bold"/>
 
-                        <!-- Parameters ListView -->
+                        
                         <ListView Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"
                                   ItemsSource="{Binding Parameters}"
                                   SelectedItem="{Binding SelectedParameter}"
@@ -137,7 +137,7 @@
                                   Background="White"
                                   AlternationCount="2">
                             <ListView.Resources>
-                                <!-- Style for alternating row colors -->
+                                
                                 <Style TargetType="ListViewItem">
                                     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                                     <Setter Property="Padding" Value="4,2"/>
@@ -160,7 +160,7 @@
                                     </Style.Triggers>
                                 </Style>
                                 
-                                <!-- Style for GridView headers -->
+                                
                                 <Style TargetType="GridViewColumnHeader">
                                     <Setter Property="Background" Value="#F0F0F0"/>
                                     <Setter Property="BorderBrush" Value="#CCCCCC"/>
@@ -210,7 +210,7 @@
                             </ListView.View>
                         </ListView>
 
-                        <!-- Button Panel -->
+                        
                         <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" 
                                     Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
 
@@ -287,7 +287,7 @@
                     </Grid>
                 </GroupBox>
 
-                <!-- AutoML Section -->
+                
                 <GroupBox Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" 
                           Header="AutoML Settings"
                           Visibility="{Binding UseAutoML, Converter={StaticResource BooleanToVisibilityConverter}}"
@@ -304,7 +304,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Max Experiment Time -->
+                        
                         <Label Grid.Row="0" Grid.Column="0" Content="Max Experiment Time:" VerticalAlignment="Center"/>
                         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
                             <TextBox Text="{Binding MaxExperimentTimeInSeconds, UpdateSourceTrigger=PropertyChanged}" 
@@ -312,7 +312,7 @@
                             <Label Content="seconds" VerticalAlignment="Center" Margin="5,0,0,0"/>
                         </StackPanel>
 
-                        <!-- Optimizing Metric -->
+                        
                         <Label Grid.Row="2" Grid.Column="0" Content="Optimizing Metric:" VerticalAlignment="Center"/>
                         <ComboBox Grid.Row="2" Grid.Column="1" 
                                   ItemsSource="{Binding AvailableMetrics}"

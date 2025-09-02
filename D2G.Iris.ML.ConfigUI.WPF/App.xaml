@@ -3,14 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:converters="clr-namespace:D2G.Iris.ML.ConfigUI.WPF.Converters">
     <Application.Resources>
-        <!-- Global Converters -->
+        
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
         <converters:StringToDecimalConverter x:Key="StringToDecimalConverter"/>
         <converters:NotNullToBooleanConverter x:Key="NotNullToBooleanConverter"/>
         <converters:NotNullToVisibilityConverter x:Key="NotNullToVisibilityConverter"/>
 
-        <!-- Global Styles -->
+        
         <Style TargetType="Button">
             <Setter Property="Padding" Value="10,5"/>
             <Setter Property="Margin" Value="2"/>

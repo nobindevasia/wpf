@@ -31,7 +31,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Parameter Name -->
+        
         <Label Grid.Row="0" Grid.Column="0" Content="Parameter Name:" VerticalAlignment="Center"/>
         <ComboBox Grid.Row="0" Grid.Column="1" 
                   ItemsSource="{Binding AvailableParameters}"
@@ -40,10 +40,10 @@
                   VerticalAlignment="Center" Height="25"
                   ToolTip="{Binding AlgorithmTooltip}"/>
 
-        <!-- Parameter Value -->
+        
         <Label Grid.Row="2" Grid.Column="0" Content="Parameter Value:" VerticalAlignment="Center"/>
         
-        <!-- ComboBox for Boolean Parameters -->
+        
         <ComboBox Grid.Row="2" Grid.Column="1" 
                   ItemsSource="{Binding BooleanOptions}"
                   SelectedItem="{Binding ParameterValueString, UpdateSourceTrigger=PropertyChanged}" 
@@ -51,7 +51,7 @@
                   VerticalAlignment="Center" Height="25"
                   Visibility="{Binding IsBooleanParameter, Converter={StaticResource BooleanToVisibilityConverter}}"/>
         
-        <!-- TextBox for Other Parameter Types -->
+        
         <TextBox Grid.Row="2" Grid.Column="1" 
                  Text="{Binding ParameterValueString, UpdateSourceTrigger=PropertyChanged}" 
                  VerticalAlignment="Center" Height="25">
@@ -69,7 +69,7 @@
 
 
 
-        <!-- Error Message -->
+        
         <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" 
                    Text="{Binding ErrorMessage}"
                    TextWrapping="Wrap" 
@@ -77,7 +77,7 @@
                    FontWeight="Bold"
                    Visibility="{Binding HasError, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="-49,2,0,13" Grid.RowSpan="2"/>
 
-        <!-- Buttons -->
+        
         <StackPanel Grid.Row="6" Grid.Column="1" 
                     Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,1,16,5">
 
