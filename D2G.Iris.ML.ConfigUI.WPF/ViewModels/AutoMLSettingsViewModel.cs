@@ -1,6 +1,8 @@
 ﻿using D2G.Iris.ML.Core.Models;
+using D2G.Iris.ML.Core.Enums;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +18,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 
         public AutoMLSettingsViewModel()
         {
+            UpdateAvailableMetrics(ModelType.BinaryClassification);
             UpdateDescription();
         }
 
@@ -51,17 +54,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             private set => SetProperty(ref _description, value);
         }
 
-        public List<string> AvailableMetrics { get; } = new()
-        {
-            "Accuracy",
-            "AUC",
-            "F1Score",
-            "MicroAccuracy",
-            "MacroAccuracy",
-            "RSquared",
-            "MeanAbsoluteError",
-            "RootMeanSquaredError"
-        };
+        public ObservableCollection<string> AvailableMetrics { get; } = new();
         #endregion
 
         private void UpdateDescription()
@@ -92,6 +85,35 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                 MaxExperimentTimeInSeconds = MaxExperimentTimeInSeconds,
                 OptimizingMetric = OptimizingMetric
             };
+        }
+
+        public void UpdateModelType(ModelType modelType)
+        {
+            UpdateAvailableMetrics(modelType);
+        }
+
+        private void UpdateAvailableMetrics(ModelType modelType)
+        {
+            AvailableMetrics.Clear();
+
+            switch (modelType)
+            {
+                case ModelType.BinaryClassification:
+                    foreach (var metric in new[] { "Accuracy", "AUC", "F1Score" })
+                        AvailableMetrics.Add(metric);
+                    OptimizingMetric = "Accuracy"; // Default for binary classification
+                    break;
+                case ModelType.MultiClassClassification:
+                    foreach (var metric in new[] { "MicroAccuracy", "MacroAccuracy" })
+                        AvailableMetrics.Add(metric);
+                    OptimizingMetric = "MicroAccuracy"; // Default for multi-class classification
+                    break;
+                case ModelType.Regression:
+                    foreach (var metric in new[] { "RSquared", "MeanAbsoluteError", "RootMeanSquaredError" })
+                        AvailableMetrics.Add(metric);
+                    OptimizingMetric = "RSquared"; // Default for regression
+                    break;
+            }
         }
     }
 }

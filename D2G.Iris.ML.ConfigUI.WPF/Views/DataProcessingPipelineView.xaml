@@ -202,7 +202,7 @@
                 </Grid.ColumnDefinitions>
                 
                 <Label Grid.Column="0" Content="Intermediate Results Table:" 
-                       FontSize="12" Padding="0,2" VerticalAlignment="Center"/>
+                       FontSize="12" FontWeight="Bold" Padding="0,2" VerticalAlignment="Center"/>
                 <TextBox Grid.Column="2" 
                          Text="{Binding IntermediateResultsTableName, UpdateSourceTrigger=PropertyChanged}" 
                          Style="{StaticResource CompactInputStyle}" 

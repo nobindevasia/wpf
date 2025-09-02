@@ -110,17 +110,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             set => SetProperty(ref _optimizingMetric, value);
         }
 
-        public List<string> AvailableMetrics { get; } = new()
-        {
-            "Accuracy",
-            "AUC",
-            "F1Score",
-            "MicroAccuracy",
-            "MacroAccuracy",
-            "RSquared",
-            "MeanAbsoluteError",
-            "RootMeanSquaredError"
-        };
+        public ObservableCollection<string> AvailableMetrics { get; } = new();
 
         // Model Configuration Properties
         public ModelType ModelType
@@ -198,19 +188,20 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             switch (_currentModelType)
             {
                 case ModelType.BinaryClassification:
-                    AvailableMetrics.AddRange(new[] { "Accuracy", "AUC", "F1Score" });
+                    foreach (var metric in new[] { "Accuracy", "AUC", "F1Score" })
+                        AvailableMetrics.Add(metric);
+                    OptimizingMetric = "Accuracy"; // Default for binary classification
                     break;
                 case ModelType.MultiClassClassification:
-                    AvailableMetrics.AddRange(new[] { "MicroAccuracy", "MacroAccuracy" });
+                    foreach (var metric in new[] { "MicroAccuracy", "MacroAccuracy" })
+                        AvailableMetrics.Add(metric);
+                    OptimizingMetric = "MicroAccuracy"; // Default for multi-class classification
                     break;
                 case ModelType.Regression:
-                    AvailableMetrics.AddRange(new[] { "RSquared", "MeanAbsoluteError", "RootMeanSquaredError" });
+                    foreach (var metric in new[] { "RSquared", "MeanAbsoluteError", "RootMeanSquaredError" })
+                        AvailableMetrics.Add(metric);
+                    OptimizingMetric = "RSquared"; // Default for regression
                     break;
-            }
-
-            if (AvailableMetrics.Count > 0 && !AvailableMetrics.Contains(OptimizingMetric))
-            {
-                OptimizingMetric = AvailableMetrics[0];
             }
         }
 
