@@ -16,6 +16,7 @@
 		<PackageReference Include="Microsoft.ML.OnnxConverter" Version="0.22.2" />
 		<PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.22.0" />
 		<PackageReference Include="Microsoft.ML.OnnxTransformer" Version="4.0.2" />
+		<PackageReference Include="SciChart" Version="6.2.0.13254" />
 	</ItemGroup>
 
 	<ItemGroup>

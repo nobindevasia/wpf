@@ -24,7 +24,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-
+            
             
             <Label Grid.Row="0" Grid.Column="0" Content="Server:" VerticalAlignment="Center"/>
             <TextBox Grid.Row="0" Grid.Column="1" 
@@ -55,7 +55,6 @@
                      AcceptsReturn="True" TextWrapping="Wrap" 
                      VerticalScrollBarVisibility="Auto" Height="60" Margin="0,0,10,0"/>
 
-            
             <Button Grid.Row="8" Grid.Column="1" 
                     Content="Test Connection"
                     Command="{Binding TestConnectionCommand}"

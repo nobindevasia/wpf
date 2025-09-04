@@ -5,7 +5,10 @@
       "Bash(dotnet build:*)",
       "Bash(dotnet restore:*)",
       "Bash(find:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(dotnet clean:*)",
+      "Read(/C:\\Users\\n.devasia\\Pictures\\New folder\\wpf\\D2G.Iris.ML.ConfigUI.WPF\\ViewModels/**)",
+      "Read(/C:\\Users\\n.devasia\\Pictures\\New folder\\wpf\\D2G.Iris.ML.ConfigUI.WPF\\ViewModels/**)"
     ],
     "deny": [],
     "ask": []

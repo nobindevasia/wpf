@@ -27,12 +27,14 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         private Func<List<InputField>>? _getInputFields;
         private bool _isLoading;
         private string _loadingMessage = "Loading data...";
+        private VisualisationViewModel _visualisationViewModel;
 
         public ExploratoryDataAnalysisViewModel(IDialogService dialogService)
         {
             _dialogService = dialogService;
             _featureTypes = new ObservableCollection<FeatureTypeInfo>();
             _columnMissingValues = new ObservableCollection<ColumnMissingInfo>();
+            _visualisationViewModel = new VisualisationViewModel(dialogService);
             
             AnalyzeDataCommand = new RelayCommand(_ => AnalyzeData(), _ => CanAnalyzeData());
         }
@@ -87,6 +89,12 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             set => SetProperty(ref _loadingMessage, value);
         }
 
+        public VisualisationViewModel VisualisationViewModel
+        {
+            get => _visualisationViewModel;
+            set => SetProperty(ref _visualisationViewModel, value);
+        }
+
         #endregion
 
         #region Commands
@@ -101,6 +109,7 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         {
             _getDatabaseConfig = getDatabaseConfig;
             _getInputFields = getInputFields;
+            _visualisationViewModel.SetDependencies(getDatabaseConfig, getInputFields);
         }
 
         #endregion
