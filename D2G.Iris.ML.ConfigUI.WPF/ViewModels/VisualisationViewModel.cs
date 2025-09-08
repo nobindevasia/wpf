@@ -1,516 +1,719 @@
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Windows.Input;
 using System.Data;
 using System.Linq;
-using System.Windows.Media;
-using System.Diagnostics;
-using Microsoft.Data.SqlClient;
-using SciChart.Charting.Model.DataSeries;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Input;
 using SciChart.Charting.Model.ChartSeries;
-using SciChart.Charting.Visuals.PointMarkers;
+using SciChart.Charting.Model.DataSeries;
 using SciChart.Data.Model;
-using D2G.Iris.ML.ConfigUI.WPF.Commands;
+
 using D2G.Iris.ML.ConfigUI.WPF.Services;
-using D2G.Iris.ML.Core.Models;
-using D2G.Iris.ML.Data;
+using D2G.Iris.ML.ConfigUI.WPF.Commands;
 
 namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
 {
     public class VisualisationViewModel : INotifyPropertyChanged
     {
         private readonly IDialogService _dialogService;
-        private ObservableCollection<IRenderableSeriesViewModel> _chartSeries;
-        private string _xAxisTitle = "Features";
-        private string _yAxisTitle = "Features";
-        private bool _hasChartData;
-        private bool _isLoading;
-        private string _loadingMessage = "Generating correlation heatmap...";
-        private Func<DatabaseConfig>? _getDatabaseConfig;
-        private Func<List<InputField>>? _getInputFields;
+        private ObservableCollection<HistogramViewModel> _histograms;
+        private HistogramViewModel? _selectedHistogram;
+        private bool _isDetailViewVisible;
+        private bool _isGeneratingHistograms;
+        private string _progressMessage = string.Empty;
+        private CancellationTokenSource? _cancellationTokenSource;
+        private DataTable? _dataTable;
 
-        public ObservableCollection<IRenderableSeriesViewModel> ChartSeries
+        public VisualisationViewModel(IDialogService dialogService)
         {
-            get => _chartSeries;
-            set
+            _dialogService = dialogService;
+            _histograms = new ObservableCollection<HistogramViewModel>();
+            
+            SelectHistogramCommand = new AsyncRelayCommand(async obj => await SelectHistogramAsync(obj as HistogramViewModel));
+            BackToOverviewCommand = new RelayCommand(_ => BackToOverview());
+            CancelGenerationCommand = new RelayCommand(_ => CancelGeneration());
+        }
+
+        public ObservableCollection<HistogramViewModel> Histograms
+        {
+            get => _histograms;
+            set => SetProperty(ref _histograms, value);
+        }
+
+        public HistogramViewModel? SelectedHistogram
+        {
+            get => _selectedHistogram;
+            set => SetProperty(ref _selectedHistogram, value);
+        }
+
+        public bool IsDetailViewVisible
+        {
+            get => _isDetailViewVisible;
+            set => SetProperty(ref _isDetailViewVisible, value);
+        }
+
+        public ICommand SelectHistogramCommand { get; }
+        public ICommand BackToOverviewCommand { get; }
+        public ICommand CancelGenerationCommand { get; }
+
+        public bool IsGeneratingHistograms
+        {
+            get => _isGeneratingHistograms;
+            set => SetProperty(ref _isGeneratingHistograms, value);
+        }
+
+        public string ProgressMessage
+        {
+            get => _progressMessage;
+            set => SetProperty(ref _progressMessage, value);
+        }
+
+        public async Task GenerateHistogramPreviewsAsync(DataTable dataTable)
+        {
+            _dataTable = dataTable;
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = _cancellationTokenSource.Token;
+
+            IsGeneratingHistograms = true;
+            Histograms.Clear();
+
+            try
             {
-                if (_chartSeries != value)
+                ProgressMessage = "Analyzing columns...";
+                var columns = dataTable.Columns.Cast<DataColumn>()
+                    .Where(c => IsNumericColumn(c) || c.DataType == typeof(string))
+                    .ToList();
+
+                int processedColumns = 0;
+                int totalColumns = columns.Count;
+
+                foreach (DataColumn column in columns)
                 {
-                    _chartSeries = value;
-                    OnPropertyChanged(nameof(ChartSeries));
-                    HasChartData = value?.Count > 0;
-                    Debug.WriteLine($"ChartSeries property set, count: {value?.Count ?? 0}");
+                    cancellationToken.ThrowIfCancellationRequested();
+                    
+                    ProgressMessage = $"Creating preview for {column.ColumnName} ({processedColumns + 1}/{totalColumns})...";
+
+                    var preview = CreateHistogramPreview(column, dataTable);
+                    if (preview != null)
+                    {
+                        Histograms.Add(preview);
+                    }
+
+                    processedColumns++;
+                    await Task.Delay(5, cancellationToken); // Small delay for UI responsiveness
+                }
+
+                ProgressMessage = "Previews ready";
+                await Task.Delay(50, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Operation was cancelled, this is expected
+            }
+            catch (Exception ex)
+            {
+                _dialogService.ShowErrorDialog($"Error generating previews: {ex.Message}", "Error");
+            }
+            finally
+            {
+                IsGeneratingHistograms = false;
+                ProgressMessage = string.Empty;
+                _cancellationTokenSource?.Dispose();
+                _cancellationTokenSource = null;
+            }
+        }
+
+        public async Task GenerateHistogramsAsync(DataTable dataTable)
+        {
+            await GenerateHistogramPreviewsAsync(dataTable);
+        }
+
+        // Keep the old synchronous method for backward compatibility
+        public void GenerateHistograms(DataTable dataTable)
+        {
+            _ = GenerateHistogramPreviewsAsync(dataTable);
+        }
+
+        private HistogramViewModel CreateHistogramPreview(DataColumn column, DataTable dataTable)
+        {
+            // Create lightweight preview with basic info only
+            var totalRows = dataTable.Rows.Count;
+            var columnType = IsNumericColumn(column) ? "Numeric" : "Categorical";
+            
+            // Quick sample of first 100 rows for preview info
+            var sampleSize = Math.Min(100, totalRows);
+            var nonNullCount = 0;
+            var uniqueValues = new HashSet<string>();
+            
+            for (int i = 0; i < sampleSize; i++)
+            {
+                var value = dataTable.Rows[i][column];
+                if (value != null && value != DBNull.Value)
+                {
+                    nonNullCount++;
+                    var stringValue = value.ToString();
+                    if (!string.IsNullOrWhiteSpace(stringValue))
+                    {
+                        uniqueValues.Add(stringValue);
+                    }
                 }
             }
+            
+            return new HistogramViewModel
+            {
+                ColumnName = column.ColumnName,
+                ColumnType = columnType,
+                TotalCount = totalRows,
+                IsPreviewOnly = true,
+                PreviewInfo = new PreviewInfo
+                {
+                    SampleSize = sampleSize,
+                    NonNullCount = nonNullCount,
+                    UniqueValueCount = uniqueValues.Count,
+                    MissingCount = sampleSize - nonNullCount
+                }
+            };
         }
 
-        public string XAxisTitle
+        public async Task LoadFullHistogramAsync(HistogramViewModel preview)
         {
-            get => _xAxisTitle;
-            set
+            if (_dataTable == null || !preview.IsPreviewOnly || preview.IsLoading) return;
+            
+            try
             {
-                _xAxisTitle = value;
-                OnPropertyChanged(nameof(XAxisTitle));
+                preview.IsLoading = true;
+                
+                // Verify the column still exists
+                if (!_dataTable.Columns.Contains(preview.ColumnName))
+                {
+                    _dialogService.ShowErrorDialog($"Column '{preview.ColumnName}' no longer exists in the dataset.", "Error");
+                    return;
+                }
+                
+                var column = _dataTable.Columns[preview.ColumnName];
+                if (column == null)
+                {
+                    _dialogService.ShowErrorDialog($"Failed to access column '{preview.ColumnName}'.", "Error");
+                    return;
+                }
+                
+                HistogramViewModel? fullHistogram = null;
+                
+                if (IsNumericColumn(column))
+                {
+                    fullHistogram = await CreateNumericHistogramAsync(column, _dataTable, CancellationToken.None);
+                }
+                else if (column.DataType == typeof(string))
+                {
+                    fullHistogram = await CreateCategoricalHistogramAsync(column, _dataTable, CancellationToken.None);
+                }
+                
+                if (fullHistogram != null)
+                {
+                    // Copy preview properties to full histogram
+                    fullHistogram.IsSelected = preview.IsSelected;
+                    
+                    // Replace preview with full histogram in collection - thread-safe approach
+                    var index = Histograms.IndexOf(preview);
+                    if (index >= 0 && index < Histograms.Count)
+                    {
+                        Histograms[index] = fullHistogram;
+                    }
+                    else
+                    {
+                        // If we can't find the preview, add the full histogram
+                        Histograms.Add(fullHistogram);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _dialogService.ShowErrorDialog($"Error loading histogram for {preview.ColumnName}: {ex.Message}", "Error");
+            }
+            finally
+            {
+                preview.IsLoading = false;
             }
         }
 
-        public string YAxisTitle
+
+        private bool IsNumericColumn(DataColumn column)
         {
-            get => _yAxisTitle;
-            set
+            return column.DataType == typeof(int) || 
+                   column.DataType == typeof(long) || 
+                   column.DataType == typeof(short) || 
+                   column.DataType == typeof(byte) ||
+                   column.DataType == typeof(float) || 
+                   column.DataType == typeof(double) || 
+                   column.DataType == typeof(decimal);
+        }
+
+        private async Task<HistogramViewModel?> CreateNumericHistogramAsync(DataColumn column, DataTable dataTable, CancellationToken cancellationToken)
+        {
+            if (column == null || dataTable == null) return null;
+            return await Task.Run(() => CreateNumericHistogram(column, dataTable), cancellationToken);
+        }
+
+        private HistogramViewModel? CreateNumericHistogram(DataColumn column, DataTable dataTable)
+        {
+            if (column == null || dataTable == null) return null;
+            
+            var values = new List<double>();
+            var allValues = new List<object?>();
+            
+            // Process in chunks to be more responsive
+            const int chunkSize = 1000;
+            int rowCount = dataTable.Rows.Count;
+            
+            for (int startIndex = 0; startIndex < rowCount; startIndex += chunkSize)
             {
-                _yAxisTitle = value;
-                OnPropertyChanged(nameof(YAxisTitle));
+                int endIndex = Math.Min(startIndex + chunkSize, rowCount);
+                
+                for (int i = startIndex; i < endIndex; i++)
+                {
+                    var value = dataTable.Rows[i][column];
+                    allValues.Add(value);
+                    
+                    if (value != null && value != DBNull.Value)
+                    {
+                        if (double.TryParse(value.ToString(), out double numericValue))
+                        {
+                            values.Add(numericValue);
+                        }
+                    }
+                }
+                
+                // Yield occasionally to prevent blocking
+                if (startIndex % (chunkSize * 5) == 0)
+                {
+                    Thread.Yield();
+                }
+            }
+
+            if (!values.Any()) return null;
+
+            var bins = 20;
+            var min = values.Min();
+            var max = values.Max();
+            var range = max - min;
+            
+            var histogram = new List<HistogramBin>();
+
+            // Handle case where all values are the same (e.g., all zeros)
+            if (range == 0 || Math.Abs(range) < double.Epsilon)
+            {
+                // Create a simple 3-bin histogram centered on the constant value
+                // This provides better Y-axis scaling and visual clarity
+                var totalCount = values.Count;
+                var spread = Math.Max(1.0, Math.Abs(min) * 0.1); // 10% of value or minimum 1
+                if (spread == 0) spread = 1.0; // For true zero values
+                
+                histogram.Add(new HistogramBin
+                {
+                    BinStart = min - spread,
+                    BinEnd = min - spread/3,
+                    Count = 0,
+                    BinCenter = min - spread * 2/3
+                });
+                
+                histogram.Add(new HistogramBin
+                {
+                    BinStart = min - spread/3,
+                    BinEnd = min + spread/3,
+                    Count = totalCount,
+                    BinCenter = min,
+                    CategoryName = min.ToString("F2")
+                });
+                
+                histogram.Add(new HistogramBin
+                {
+                    BinStart = min + spread/3,
+                    BinEnd = min + spread,
+                    Count = 0,
+                    BinCenter = min + spread * 2/3
+                });
+            }
+            else
+            {
+                var binWidth = range / bins;
+                
+                for (int i = 0; i < bins; i++)
+                {
+                    var binStart = min + i * binWidth;
+                    var binEnd = binStart + binWidth;
+                    var count = values.Count(v => v >= binStart && (i == bins - 1 ? v <= binEnd : v < binEnd));
+                    
+                    histogram.Add(new HistogramBin
+                    {
+                        BinStart = binStart,
+                        BinEnd = binEnd,
+                        Count = count,
+                        BinCenter = binStart + binWidth / 2
+                    });
+                }
+            }
+
+            var dataSeries = new XyDataSeries<double, int>();
+            foreach (var bin in histogram)
+            {
+                dataSeries.Append(bin.BinCenter, bin.Count);
+            }
+
+            var statistics = CalculateNumericStatistics(values, allValues);
+
+            var result = new HistogramViewModel
+            {
+                ColumnName = column.ColumnName,
+                ColumnType = "Numeric",
+                Bins = histogram,
+                TotalCount = values.Count,
+                DataSeries = dataSeries,
+                Statistics = statistics
+            };
+            
+            return result;
+        }
+
+        private async Task<HistogramViewModel?> CreateCategoricalHistogramAsync(DataColumn column, DataTable dataTable, CancellationToken cancellationToken)
+        {
+            if (column == null || dataTable == null) return null;
+            return await Task.Run(() => CreateCategoricalHistogram(column, dataTable), cancellationToken);
+        }
+
+        private HistogramViewModel? CreateCategoricalHistogram(DataColumn column, DataTable dataTable)
+        {
+            if (column == null || dataTable == null) return null;
+            
+            var allValues = new List<string?>();
+            
+            // Process in chunks to be more responsive
+            const int chunkSize = 1000;
+            int rowCount = dataTable.Rows.Count;
+            
+            for (int startIndex = 0; startIndex < rowCount; startIndex += chunkSize)
+            {
+                int endIndex = Math.Min(startIndex + chunkSize, rowCount);
+                
+                for (int i = startIndex; i < endIndex; i++)
+                {
+                    allValues.Add(dataTable.Rows[i][column]?.ToString());
+                }
+                
+                // Yield occasionally to prevent blocking
+                if (startIndex % (chunkSize * 5) == 0)
+                {
+                    Thread.Yield();
+                }
+            }
+
+            var categoryGroups = allValues
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .GroupBy(s => s!)
+                .OrderByDescending(g => g.Count())
+                .Take(20)
+                .ToList();
+
+            if (!categoryGroups.Any()) return null;
+
+            var histogram = categoryGroups.Select((group, index) => new HistogramBin
+            {
+                BinStart = index,
+                BinEnd = index + 1,
+                Count = group.Count(),
+                BinCenter = index + 0.5,
+                CategoryName = group.Key
+            }).ToList();
+
+            var dataSeries = new XyDataSeries<double, int>();
+            foreach (var bin in histogram)
+            {
+                dataSeries.Append(bin.BinCenter, bin.Count);
+            }
+
+            var statistics = CalculateCategoricalStatistics(allValues);
+
+            return new HistogramViewModel
+            {
+                ColumnName = column.ColumnName,
+                ColumnType = "Categorical",
+                Bins = histogram,
+                TotalCount = categoryGroups.Sum(g => g.Count()),
+                DataSeries = dataSeries,
+                Statistics = statistics
+            };
+        }
+
+        private StatisticalSummary CalculateNumericStatistics(List<double> values, List<object?> allValues)
+        {
+            if (!values.Any()) return new StatisticalSummary();
+
+            var sortedValues = values.OrderBy(x => x).ToList();
+            var n = values.Count;
+            
+            var mean = values.Average();
+            var variance = n > 1 ? values.Sum(x => Math.Pow(x - mean, 2)) / n : 0;
+            var standardDeviation = Math.Sqrt(Math.Max(0, variance)); // Ensure non-negative
+            
+            var median = n % 2 == 0 
+                ? (sortedValues[n / 2 - 1] + sortedValues[n / 2]) / 2.0
+                : sortedValues[n / 2];
+            
+            var q1 = CalculatePercentile(sortedValues, 25);
+            var q3 = CalculatePercentile(sortedValues, 75);
+            var iqr = Math.Max(0, q3 - q1); // Ensure non-negative IQR
+            
+            var skewness = CalculateSkewness(values, mean, standardDeviation);
+            var kurtosis = CalculateKurtosis(values, mean, standardDeviation);
+            
+            var missingCount = allValues.Count(v => v == null || v == DBNull.Value || 
+                (v is string str && string.IsNullOrWhiteSpace(str)));
+
+            var frequencies = values.GroupBy(x => x).OrderByDescending(g => g.Count()).FirstOrDefault();
+            var range = sortedValues.Count > 1 ? sortedValues.Last() - sortedValues.First() : 0;
+
+            return new StatisticalSummary
+            {
+                Mean = Double.IsNaN(mean) ? 0 : mean,
+                Median = Double.IsNaN(median) ? 0 : median,
+                StandardDeviation = Double.IsNaN(standardDeviation) ? 0 : standardDeviation,
+                Variance = Double.IsNaN(variance) ? 0 : variance,
+                Min = sortedValues.First(),
+                Max = sortedValues.Last(),
+                Range = range,
+                Q1 = Double.IsNaN(q1) ? sortedValues.First() : q1,
+                Q3 = Double.IsNaN(q3) ? sortedValues.Last() : q3,
+                IQR = Double.IsNaN(iqr) ? 0 : iqr,
+                Skewness = Double.IsNaN(skewness) ? 0 : skewness,
+                Kurtosis = Double.IsNaN(kurtosis) ? 0 : kurtosis,
+                UniqueValues = values.Distinct().Count(),
+                MissingValues = missingCount,
+                MostFrequentValue = frequencies?.Key.ToString() ?? "",
+                MostFrequentCount = frequencies?.Count() ?? 0
+            };
+        }
+
+        private StatisticalSummary CalculateCategoricalStatistics(List<string?> allValues)
+        {
+            var nonNullValues = allValues.Where(v => !string.IsNullOrWhiteSpace(v)).ToList();
+            var missingCount = allValues.Count - nonNullValues.Count;
+            
+            var frequencies = nonNullValues.GroupBy(x => x).OrderByDescending(g => g.Count()).ToList();
+            var mostFrequent = frequencies.FirstOrDefault();
+
+            return new StatisticalSummary
+            {
+                UniqueValues = nonNullValues.Distinct().Count(),
+                MissingValues = missingCount,
+                MostFrequentValue = mostFrequent?.Key ?? "",
+                MostFrequentCount = mostFrequent?.Count() ?? 0
+            };
+        }
+
+        private double CalculatePercentile(List<double> sortedValues, double percentile)
+        {
+            if (sortedValues == null || !sortedValues.Any())
+                return 0;
+                
+            var n = sortedValues.Count;
+            
+            if (n == 1)
+                return sortedValues[0];
+                
+            var index = percentile / 100.0 * (n - 1);
+            
+            if (index <= 0)
+                return sortedValues[0];
+            if (index >= n - 1)
+                return sortedValues[n - 1];
+            
+            if (index == Math.Floor(index))
+            {
+                return sortedValues[(int)index];
+            }
+            else
+            {
+                var lower = (int)Math.Floor(index);
+                var upper = (int)Math.Ceiling(index);
+                var weight = index - lower;
+                
+                // Ensure indices are within bounds
+                lower = Math.Max(0, Math.Min(lower, n - 1));
+                upper = Math.Max(0, Math.Min(upper, n - 1));
+                
+                return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight;
             }
         }
 
-        public bool HasChartData
+        private double CalculateSkewness(List<double> values, double mean, double standardDeviation)
         {
-            get => _hasChartData;
-            set
+            if (standardDeviation == 0) return 0;
+            
+            var n = values.Count;
+            var sum = values.Sum(x => Math.Pow((x - mean) / standardDeviation, 3));
+            
+            return sum / n;
+        }
+
+        private double CalculateKurtosis(List<double> values, double mean, double standardDeviation)
+        {
+            if (standardDeviation == 0) return 0;
+            
+            var n = values.Count;
+            var sum = values.Sum(x => Math.Pow((x - mean) / standardDeviation, 4));
+            
+            return (sum / n) - 3; // Excess kurtosis
+        }
+
+        private async Task SelectHistogramAsync(HistogramViewModel? histogram)
+        {
+            if (histogram == null) return;
+            
+            try
             {
-                _hasChartData = value;
-                OnPropertyChanged(nameof(HasChartData));
+                foreach (var h in Histograms)
+                {
+                    h.IsSelected = false;
+                }
+                
+                histogram.IsSelected = true;
+                
+                // Load full histogram if it's still a preview
+                if (histogram.IsPreviewOnly)
+                {
+                    await LoadFullHistogramAsync(histogram);
+                    // Get the updated histogram after loading - safer approach
+                    histogram = Histograms.FirstOrDefault(h => h.ColumnName == histogram.ColumnName);
+                    if (histogram == null)
+                    {
+                        _dialogService.ShowErrorDialog("Failed to load histogram data.", "Error");
+                        return;
+                    }
+                }
+                
+                SelectedHistogram = histogram;
+                IsDetailViewVisible = true;
             }
+            catch (Exception ex)
+            {
+                _dialogService.ShowErrorDialog($"Error selecting histogram: {ex.Message}", "Error");
+            }
+        }
+
+        private void BackToOverview()
+        {
+            IsDetailViewVisible = false;
+            if (SelectedHistogram != null)
+            {
+                SelectedHistogram.IsSelected = false;
+            }
+            SelectedHistogram = null;
+        }
+
+        private void CancelGeneration()
+        {
+            _cancellationTokenSource?.Cancel();
+        }
+
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+    }
+
+    public class HistogramViewModel : INotifyPropertyChanged
+    {
+        private bool _isSelected;
+        private bool _isLoading;
+
+        public string ColumnName { get; set; } = string.Empty;
+        public string ColumnType { get; set; } = string.Empty;
+        public List<HistogramBin> Bins { get; set; } = new();
+        public int TotalCount { get; set; }
+        public IDataSeries DataSeries { get; set; } = null!;
+        public StatisticalSummary Statistics { get; set; } = new();
+        public bool IsPreviewOnly { get; set; } = false;
+        public PreviewInfo PreviewInfo { get; set; } = new();
+
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set => SetProperty(ref _isSelected, value);
         }
 
         public bool IsLoading
         {
             get => _isLoading;
-            set
-            {
-                _isLoading = value;
-                OnPropertyChanged(nameof(IsLoading));
-            }
-        }
-
-        public string LoadingMessage
-        {
-            get => _loadingMessage;
-            set
-            {
-                _loadingMessage = value;
-                OnPropertyChanged(nameof(LoadingMessage));
-            }
-        }
-
-        public ICommand GenerateChartCommand { get; }
-
-        public VisualisationViewModel(IDialogService dialogService)
-        {
-            _dialogService = dialogService;
-            
-            // Initialize ChartSeries properly
-            _chartSeries = new ObservableCollection<IRenderableSeriesViewModel>();
-            Debug.WriteLine("ChartSeries initialized");
-            
-            GenerateChartCommand = new RelayCommand(() => GenerateCorrelationHeatmap(), () => CanGenerateChart());
-        }
-        
-
-        public void SetDependencies(Func<DatabaseConfig> getDatabaseConfig, Func<List<InputField>> getInputFields)
-        {
-            _getDatabaseConfig = getDatabaseConfig;
-            _getInputFields = getInputFields;
-        }
-
-        private bool CanGenerateChart()
-        {
-            return !_isLoading; // Simplified for debugging
-        }
-
-        private async void GenerateCorrelationHeatmap()
-        {
-            try
-            {
-                IsLoading = true;
-                LoadingMessage = "Initializing correlation analysis...";
-                HasChartData = false;
-
-                var databaseConfig = _getDatabaseConfig?.Invoke();
-                var inputFields = _getInputFields?.Invoke();
-                
-                Debug.WriteLine($"Database config: {(databaseConfig != null ? "Available" : "NULL")}");
-                Debug.WriteLine($"Input fields: {(inputFields != null ? inputFields.Count.ToString() : "NULL")}");
-                
-                if (databaseConfig == null)
-                {
-                    Debug.WriteLine("ERROR: Database configuration is required.");
-                    _dialogService.ShowErrorDialog("Database configuration is required.", "Error");
-                    return;
-                }
-
-                if (inputFields == null || !inputFields.Any())
-                {
-                    Debug.WriteLine("ERROR: Input fields are required.");
-                    _dialogService.ShowErrorDialog("Input fields are required.", "Error");
-                    return;
-                }
-
-                var enabledFields = inputFields.Where(f => f.IsEnabled).ToList();
-                if (enabledFields.Count < 2)
-                {
-                    Debug.WriteLine("ERROR: At least 2 numeric fields are required for correlation analysis.");
-                    _dialogService.ShowErrorDialog("At least 2 numeric fields are required for correlation analysis.", "Error");
-                    return;
-                }
-
-                LoadingMessage = "Connecting to database...";
-                await Task.Delay(300);
-
-                Debug.WriteLine($"Attempting to connect to database: {databaseConfig.Server}");
-                
-                // Run database operations on background thread
-                var (correlationMatrix, numericColumns) = await Task.Run(() =>
-                {
-                    try
-                    {
-                        var sqlHandler = new SqlHandler(databaseConfig.TableName);
-                        sqlHandler.Connect(databaseConfig);
-                        var connectionString = sqlHandler.GetConnectionString();
-                        
-                        Debug.WriteLine("Database connection established");
-
-                        string fullTableName = databaseConfig.TableName.Contains('[')
-                            ? databaseConfig.TableName 
-                            : (databaseConfig.TableName.Contains('.')
-                                ? string.Join('.', databaseConfig.TableName.Split('.').Select(part => $"[{part}]"))
-                                : $"[{databaseConfig.TableName}]");
-
-                        var fieldNames = enabledFields.Select(f => $"[{f.Name}]");
-                        var fieldsClause = string.Join(", ", fieldNames);
-
-                        var query = string.IsNullOrWhiteSpace(databaseConfig.WhereClause) 
-                            ? $"SELECT {fieldsClause} FROM {fullTableName}"
-                            : $"SELECT {fieldsClause} FROM {fullTableName} WHERE {databaseConfig.WhereClause}";
-
-                        Debug.WriteLine($"Executing query: {query}");
-                        
-                        var dataTable = ExecuteQuery(connectionString, query);
-                        Debug.WriteLine($"Retrieved {dataTable.Rows.Count} rows");
-                        
-                        var numericCols = GetNumericColumns(dataTable);
-                        Debug.WriteLine($"Found {numericCols.Count} numeric columns: {string.Join(", ", numericCols)}");
-                        
-                        if (numericCols.Count < 2)
-                        {
-                            throw new InvalidOperationException("At least 2 numeric columns are required for correlation analysis.");
-                        }
-                        
-                        Debug.WriteLine("Calculating correlation matrix...");
-                        var corrMatrix = CalculateCorrelationMatrix(dataTable, numericCols);
-                        Debug.WriteLine("Correlation matrix calculated successfully");
-                        
-                        return (corrMatrix, numericCols);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"Database operation error: {ex.Message}");
-                        throw;
-                    }
-                });
-
-                LoadingMessage = "Generating visualization...";
-                await Task.Delay(300);
-
-                // Debug: Log correlation matrix info
-                Debug.WriteLine($"Correlation matrix calculated for {numericColumns.Count} columns");
-                if (numericColumns.Count > 0 && correlationMatrix.GetLength(0) > 0)
-                {
-                    Debug.WriteLine($"Sample correlation value [0,1]: {(numericColumns.Count > 1 ? correlationMatrix[0, 1].ToString() : "N/A")}");
-                }
-
-                CreateHeatmapChart(correlationMatrix, numericColumns);
-
-                HasChartData = true;
-                _dialogService.ShowInfoDialog($"Real correlation analysis completed for {numericColumns.Count} numeric fields from your database.", "Analysis Complete");
-            }
-            catch (Exception ex)
-            {
-                _dialogService.ShowErrorDialog($"Error generating heatmap: {ex.Message}", "Heatmap Error");
-            }
-            finally
-            {
-                IsLoading = false;
-            }
-        }
-
-        private DataTable ExecuteQuery(string connectionString, string query)
-        {
-            using var connection = new SqlConnection(connectionString);
-            using var command = new SqlCommand(query, connection);
-            using var adapter = new SqlDataAdapter(command);
-            
-            var dataTable = new DataTable();
-            connection.Open();
-            adapter.Fill(dataTable);
-            
-            return dataTable;
-        }
-
-        private List<string> GetNumericColumns(DataTable dataTable)
-        {
-            var numericColumns = new List<string>();
-            
-            foreach (DataColumn column in dataTable.Columns)
-            {
-                if (IsNumericType(column.DataType))
-                {
-                    numericColumns.Add(column.ColumnName);
-                }
-            }
-            
-            return numericColumns;
-        }
-
-        private bool IsNumericType(Type dataType)
-        {
-            return dataType == typeof(byte) || dataType == typeof(sbyte) ||
-                   dataType == typeof(short) || dataType == typeof(ushort) ||
-                   dataType == typeof(int) || dataType == typeof(uint) ||
-                   dataType == typeof(long) || dataType == typeof(ulong) ||
-                   dataType == typeof(float) || dataType == typeof(double) ||
-                   dataType == typeof(decimal);
-        }
-
-        private double[,] CalculateCorrelationMatrix(DataTable dataTable, List<string> numericColumns)
-        {
-            int fieldCount = numericColumns.Count;
-            double[,] correlationMatrix = new double[fieldCount, fieldCount];
-            
-            // Convert data to numeric arrays
-            var fieldData = new List<double[]>();
-            
-            foreach (var columnName in numericColumns)
-            {
-                var values = new List<double>();
-                foreach (DataRow row in dataTable.Rows)
-                {
-                    if (row[columnName] != DBNull.Value && 
-                        double.TryParse(row[columnName].ToString(), out double value))
-                    {
-                        values.Add(value);
-                    }
-                }
-                fieldData.Add(values.ToArray());
-            }
-
-            // Calculate Pearson correlation coefficients
-            for (int i = 0; i < fieldCount; i++)
-            {
-                for (int j = 0; j < fieldCount; j++)
-                {
-                    if (i == j)
-                    {
-                        correlationMatrix[i, j] = 1.0;
-                    }
-                    else
-                    {
-                        correlationMatrix[i, j] = CalculatePearsonCorrelation(fieldData[i], fieldData[j]);
-                    }
-                }
-            }
-
-            return correlationMatrix;
-        }
-
-        private double CalculatePearsonCorrelation(double[] x, double[] y)
-        {
-            if (x.Length != y.Length || x.Length == 0) return 0;
-
-            double meanX = x.Average();
-            double meanY = y.Average();
-
-            double numerator = x.Zip(y, (xi, yi) => (xi - meanX) * (yi - meanY)).Sum();
-            double denomX = Math.Sqrt(x.Sum(xi => Math.Pow(xi - meanX, 2)));
-            double denomY = Math.Sqrt(y.Sum(yi => Math.Pow(yi - meanY, 2)));
-
-            if (denomX == 0 || denomY == 0) return 0;
-
-            return numerator / (denomX * denomY);
-        }
-
-        private void CreateHeatmapChart(double[,] correlationMatrix, List<string> fieldNames)
-        {
-            try
-            {
-                Debug.WriteLine("=== CreateHeatmapChart START ===");
-                
-                // Force clear and notify
-                ChartSeries.Clear();
-                OnPropertyChanged(nameof(ChartSeries));
-                
-                int size = fieldNames.Count;
-                Debug.WriteLine($"Creating correlation heatmap for {size} fields");
-                
-                // Create a comprehensive data series showing all correlations in a single line
-                var correlationSeries = new XyDataSeries<double, double> 
-                { 
-                    SeriesName = "Correlation Matrix",
-                    AcceptsUnsortedData = true
-                };
-                
-                int index = 0;
-                Debug.WriteLine("Correlation Matrix Values:");
-                Debug.WriteLine("==========================");
-                
-                // Print correlation matrix and add to chart
-                for (int i = 0; i < size; i++)
-                {
-                    for (int j = 0; j < size; j++)
-                    {
-                        double correlation = correlationMatrix[i, j];
-                        if (!double.IsNaN(correlation) && !double.IsInfinity(correlation))
-                        {
-                            correlationSeries.Append(index, correlation);
-                            
-                            // Print meaningful correlation info
-                            if (i != j) // Skip self-correlations (always 1.0)
-                            {
-                                Debug.WriteLine($"{fieldNames[i]} vs {fieldNames[j]}: {correlation:F3}");
-                            }
-                            
-                            index++;
-                        }
-                    }
-                }
-                
-                Debug.WriteLine("==========================");
-                Debug.WriteLine($"Total data points: {correlationSeries.Count}");
-                
-                // Create line chart to show correlation patterns
-                var lineSeriesViewModel = new LineRenderableSeriesViewModel
-                {
-                    DataSeries = correlationSeries,
-                    StrokeThickness = 2,
-                    Stroke = Colors.Blue
-                };
-                
-                ChartSeries.Add(lineSeriesViewModel);
-                
-                // Also create individual series for each field's correlations for better visualization
-                var colors = new[] { Colors.Red, Colors.Green, Colors.Orange, Colors.Purple, Colors.Brown };
-                
-                for (int i = 0; i < Math.Min(size, 5); i++) // Limit to avoid clutter
-                {
-                    var fieldSeries = new XyDataSeries<double, double> 
-                    { 
-                        SeriesName = $"{fieldNames[i]} correlations",
-                        AcceptsUnsortedData = true
-                    };
-                    
-                    for (int j = 0; j < size; j++)
-                    {
-                        double correlation = correlationMatrix[i, j];
-                        if (!double.IsNaN(correlation) && !double.IsInfinity(correlation))
-                        {
-                            fieldSeries.Append(j, correlation);
-                        }
-                    }
-                    
-                    var fieldLineViewModel = new LineRenderableSeriesViewModel
-                    {
-                        DataSeries = fieldSeries,
-                        StrokeThickness = 1,
-                        Stroke = colors[i % colors.Length]
-                    };
-                    
-                    ChartSeries.Add(fieldLineViewModel);
-                }
-                
-                // Force property notifications
-                OnPropertyChanged(nameof(ChartSeries));
-                
-                // Update axis properties with meaningful labels
-                XAxisTitle = "Field Pairs & Individual Field Index";
-                YAxisTitle = "Correlation Coefficient (-1 to +1)";
-                OnPropertyChanged(nameof(XAxisTitle));
-                OnPropertyChanged(nameof(YAxisTitle));
-                
-                // Set chart data flag
-                HasChartData = true;
-                OnPropertyChanged(nameof(HasChartData));
-                
-                Debug.WriteLine($"Correlation visualization created successfully. ChartSeries count: {ChartSeries.Count}");
-                Debug.WriteLine("=== CreateHeatmapChart END ===");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error creating correlation heatmap: {ex.Message}");
-                Debug.WriteLine($"Stack trace: {ex.StackTrace}");
-                
-                // Fallback to single line chart
-                CreateFallbackLineChart(correlationMatrix, fieldNames);
-            }
-        }
-        
-        private void CreateFallbackLineChart(double[,] correlationMatrix, List<string> fieldNames)
-        {
-            try
-            {
-                Debug.WriteLine("Creating fallback line chart...");
-                
-                var lineSeries = new XyDataSeries<double, double> 
-                { 
-                    SeriesName = "Correlation Values",
-                    AcceptsUnsortedData = true
-                };
-                
-                int index = 0;
-                for (int i = 0; i < fieldNames.Count; i++)
-                {
-                    for (int j = 0; j < fieldNames.Count; j++)
-                    {
-                        double correlation = correlationMatrix[i, j];
-                        if (!double.IsNaN(correlation) && !double.IsInfinity(correlation))
-                        {
-                            lineSeries.Append(index++, correlation);
-                        }
-                    }
-                }
-                
-                var lineSeriesViewModel = new LineRenderableSeriesViewModel
-                {
-                    DataSeries = lineSeries,
-                    StrokeThickness = 2,
-                    Stroke = Colors.Green
-                };
-
-                ChartSeries.Add(lineSeriesViewModel);
-                
-                XAxisTitle = "Correlation Index";
-                YAxisTitle = "Correlation Value";
-                HasChartData = true;
-                
-                Debug.WriteLine("Fallback line chart created successfully");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error creating fallback chart: {ex.Message}");
-                _dialogService.ShowErrorDialog($"Error creating correlation chart: {ex.Message}", "Chart Error");
-            }
+            set => SetProperty(ref _isLoading, value);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
+        
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
     }
 
-    public static class RandomExtensions
+    public class StatisticalSummary
     {
-        public static double NextGaussian(this Random random, double mean = 0, double stdDev = 1)
-        {
-            static double BoxMuller(Random rand)
-            {
-                double u1 = 1.0 - rand.NextDouble();
-                double u2 = 1.0 - rand.NextDouble();
-                return Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2);
-            }
+        public double Mean { get; set; }
+        public double Median { get; set; }
+        public double StandardDeviation { get; set; }
+        public double Variance { get; set; }
+        public double Min { get; set; }
+        public double Max { get; set; }
+        public double Range { get; set; }
+        public double Q1 { get; set; }
+        public double Q3 { get; set; }
+        public double IQR { get; set; }
+        public double Skewness { get; set; }
+        public double Kurtosis { get; set; }
+        public int UniqueValues { get; set; }
+        public int MissingValues { get; set; }
+        public string MostFrequentValue { get; set; } = string.Empty;
+        public int MostFrequentCount { get; set; }
+    }
 
-            return mean + stdDev * BoxMuller(random);
-        }
+    public class HistogramBin
+    {
+        public double BinStart { get; set; }
+        public double BinEnd { get; set; }
+        public double BinCenter { get; set; }
+        public int Count { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
+    }
+
+    public class PreviewInfo
+    {
+        public int SampleSize { get; set; }
+        public int NonNullCount { get; set; }
+        public int UniqueValueCount { get; set; }
+        public int MissingCount { get; set; }
+        public double MissingPercentage => SampleSize > 0 ? (double)MissingCount / SampleSize * 100 : 0;
+        public double DataQuality => SampleSize > 0 ? (double)NonNullCount / SampleSize * 100 : 0;
     }
 }

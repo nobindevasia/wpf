@@ -94,7 +94,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.Converters
             return false;
         }
     }
-
     public class InverseBooleanToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -113,6 +112,23 @@ namespace D2G.Iris.ML.ConfigUI.WPF.Converters
                 return visibility != Visibility.Visible;
             }
             return false;
+        }
+    }
+
+    public class CountToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is int count)
+            {
+                return count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+            return Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 }

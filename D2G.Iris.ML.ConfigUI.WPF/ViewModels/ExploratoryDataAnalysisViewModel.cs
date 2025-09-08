@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.Data.SqlClient;
+using Microsoft.ML;
 using D2G.Iris.ML.ConfigUI.WPF.Commands;
 using D2G.Iris.ML.ConfigUI.WPF.Services;
 using D2G.Iris.ML.Core.Models;
@@ -109,7 +110,6 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
         {
             _getDatabaseConfig = getDatabaseConfig;
             _getInputFields = getInputFields;
-            _visualisationViewModel.SetDependencies(getDatabaseConfig, getInputFields);
         }
 
         #endregion
@@ -150,35 +150,35 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
                     return;
                 }
 
-                LoadingMessage = "Connecting to database...";
+                LoadingMessage = "Loading data from database...";
                 await Task.Delay(200);
 
                 var sqlHandler = new SqlHandler(databaseConfig.TableName);
                 sqlHandler.Connect(databaseConfig);
                 var connectionString = sqlHandler.GetConnectionString();
 
-                string fullTableName = databaseConfig.TableName.Contains('[')
-                    ? databaseConfig.TableName 
-                    : (databaseConfig.TableName.Contains('.')
-                        ? string.Join('.', databaseConfig.TableName.Split('.').Select(part => $"[{part}]"))
-                        : $"[{databaseConfig.TableName}]");
-
-                var fieldNames = enabledFields.Select(f => $"[{f.Name}]");
-                var fieldsClause = string.Join(", ", fieldNames);
-
-                var query = string.IsNullOrWhiteSpace(databaseConfig.WhereClause) 
-                    ? $"SELECT {fieldsClause} FROM {fullTableName}"
-                    : $"SELECT {fieldsClause} FROM {fullTableName} WHERE {databaseConfig.WhereClause}";
-
-                LoadingMessage = "Loading data from database...";
-                await Task.Delay(300);
-
-                var dataTable = await Task.Run(() => ExecuteQuery(connectionString, query));
+                var dataTable = await Task.Run(() => 
+                {
+                    var dataLoader = new DatabaseDataLoader();
+                    var enabledFieldNames = enabledFields.Select(f => f.Name).ToArray();
+                    
+                    // Use same data loading approach as training but convert to DataTable for EDA
+                    return LoadDataTableFromSql(
+                        connectionString,
+                        databaseConfig.TableName,
+                        enabledFieldNames,
+                        databaseConfig.WhereClause);
+                });
                 
                 LoadingMessage = "Analyzing data patterns...";
                 await Task.Delay(200);
 
                 AnalyzeDataTable(dataTable);
+
+                LoadingMessage = "Generating chart previews...";
+                await Task.Delay(200);
+
+                await _visualisationViewModel.GenerateHistogramPreviewsAsync(dataTable);
 
                 _dialogService.ShowInfoDialog($"Data analysis completed successfully for {enabledFields.Count} enabled fields.", "Analysis Complete");
             }
@@ -192,8 +192,21 @@ namespace D2G.Iris.ML.ConfigUI.WPF.ViewModels
             }
         }
 
-        private DataTable ExecuteQuery(string connectionString, string query)
+        private DataTable LoadDataTableFromSql(string connectionString, string tableName, string[] fieldNames, string whereClause)
         {
+            string fullTableName = tableName.Contains('[')
+                ? tableName 
+                : (tableName.Contains('.')
+                    ? string.Join('.', tableName.Split('.').Select(part => $"[{part}]"))
+                    : $"[{tableName}]");
+
+            var fieldNamesWithBrackets = fieldNames.Select(f => $"[{f}]");
+            var fieldsClause = string.Join(", ", fieldNamesWithBrackets);
+
+            var query = string.IsNullOrWhiteSpace(whereClause) 
+                ? $"SELECT {fieldsClause} FROM {fullTableName}"
+                : $"SELECT {fieldsClause} FROM {fullTableName} WHERE {whereClause}";
+
             using var connection = new SqlConnection(connectionString);
             using var command = new SqlCommand(query, connection);
             using var adapter = new SqlDataAdapter(command);

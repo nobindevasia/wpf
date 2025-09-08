@@ -44,6 +44,13 @@ namespace D2G.Iris.ML.ConfigUI.WPF.Commands
             {
                 await _executeAsync(parameter);
             }
+            catch (Exception ex)
+            {
+                // Log the exception - in a real app this would go to a logging framework
+                System.Diagnostics.Debug.WriteLine($"AsyncRelayCommand exception: {ex}");
+                // Re-throw so the calling context can handle it appropriately
+                throw;
+            }
             finally
             {
                 _isExecuting = false;
